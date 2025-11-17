@@ -24,6 +24,17 @@ class LoginScreen extends StatelessWidget {
 
           // login button
           MyCustomButtom(),
+
+          // esperflow logo
+          // TODO: use image or icon
+
+          // register option if user dont have an account
+          Row(
+            children: [
+              Text('Don\'t have an account? '),
+              TextButton(onPressed: () {}, child: Text('Register')),
+            ],
+          ),
         ],
       ),
     );
