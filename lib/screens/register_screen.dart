@@ -31,7 +31,11 @@ class RegisterScreen extends StatelessWidget {
             MyTextField(hintText: "Current Address"),
 
             // register confimation button
-            MyCustomButtom(),
+            MyCustomButtom(
+              backgroundColor: Colors.red,
+              text: "Continue",
+              textColor: Colors.white,
+            ),
           ],
         ),
       ),

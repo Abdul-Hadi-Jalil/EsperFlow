@@ -37,7 +37,11 @@ class BloodRequestScreen extends StatelessWidget {
             MyTextField(hintText: "Additional Notes (Optional)"),
 
             // submit button
-            MyCustomButtom(),
+            MyCustomButtom(
+              backgroundColor: Colors.red,
+              text: "Submit Request",
+              textColor: Colors.white,
+            ),
           ],
         ),
       ),

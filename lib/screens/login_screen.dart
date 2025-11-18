@@ -25,7 +25,7 @@ class LoginScreen extends StatelessWidget {
             TextButton(onPressed: () {}, child: Text('Forgot Password')),
 
             // login button
-            MyCustomButtom(),
+            MyCustomButtom(backgroundColor: Colors.red, text: "Login"),
 
             // esperflow logo
             // TODO: use image or icon

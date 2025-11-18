@@ -44,10 +44,18 @@ class _AdditionalInformationScreenState
             Row(
               children: [
                 // back button
-                MyCustomButtom(),
+                MyCustomButtom(
+                  backgroundColor: Colors.red.shade300,
+                  text: "Back",
+                  textColor: Colors.black,
+                ),
 
                 // submit buttom
-                MyCustomButtom(),
+                MyCustomButtom(
+                  backgroundColor: Colors.red,
+                  text: "Submit",
+                  textColor: Colors.white,
+                ),
               ],
             ),
 
