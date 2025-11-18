@@ -20,10 +20,10 @@ class _AdditionalInformationScreenState
         child: Column(
           children: [
             // last blood donation field
-            MyTextField(),
+            MyTextField(hintText: "Last Blood Donation"),
 
             // CNIC field
-            MyTextField(),
+            MyTextField(hintText: "CNIC Number"),
 
             // upload cnic image button
             // TODO: create a button for user to use camera or upload from gallery

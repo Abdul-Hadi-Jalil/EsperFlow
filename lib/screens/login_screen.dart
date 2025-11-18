@@ -16,10 +16,10 @@ class LoginScreen extends StatelessWidget {
             Text('Donate Life, Save Lives'),
 
             // email text field
-            MyTextField(),
+            MyTextField(hintText: "Email"),
 
             // password field
-            MyTextField(),
+            MyTextField(hintText: "Password"),
 
             // forgot text button
             TextButton(onPressed: () {}, child: Text('Forgot Password')),

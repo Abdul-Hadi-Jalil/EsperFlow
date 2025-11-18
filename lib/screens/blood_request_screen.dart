@@ -13,10 +13,10 @@ class BloodRequestScreen extends StatelessWidget {
         child: Column(
           children: [
             // full name field
-            MyTextField(),
+            MyTextField(hintText: "Full Name"),
 
             // phone number field
-            MyTextField(),
+            MyTextField(hintText: 'Phone Number'),
 
             // drop down menu for blood group selection
             // TODO: will be implemented
@@ -28,13 +28,13 @@ class BloodRequestScreen extends StatelessWidget {
             Text('Each donor can safely donate upto 400ml'),
 
             // location field
-            MyTextField(),
+            MyTextField(hintText: "Location"),
 
             // hospital or cnic field
-            MyTextField(),
+            MyTextField(hintText: "Hospital or CNIC"),
 
             // additional notes
-            MyTextField(),
+            MyTextField(hintText: "Additional Notes (Optional)"),
 
             // submit button
             MyCustomButtom(),

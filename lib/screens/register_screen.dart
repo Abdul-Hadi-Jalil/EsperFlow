@@ -16,19 +16,19 @@ class RegisterScreen extends StatelessWidget {
             Text('Register as Donor'),
 
             // full name text field
-            MyTextField(),
+            MyTextField(hintText: "Full Name"),
 
             // email field
-            MyTextField(),
+            MyTextField(hintText: "Email"),
 
             // enter phone number field
-            MyTextField(),
+            MyTextField(hintText: "Phone Number (+92)"),
 
             // drop down menu for blood group selection
             // TODO: will be implemented
 
             // address field
-            MyTextField(),
+            MyTextField(hintText: "Current Address"),
 
             // register confimation button
             MyCustomButtom(),
