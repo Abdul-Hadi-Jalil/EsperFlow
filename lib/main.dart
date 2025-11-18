@@ -1,3 +1,4 @@
+import 'package:esperflow/screens/home_screen.dart';
 import 'package:esperflow/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -13,8 +14,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
-      home: LoginScreen(),
+      theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.red)),
+      home: HomeScreen(),
     );
   }
 }

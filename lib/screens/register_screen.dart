@@ -7,31 +7,33 @@ class RegisterScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(10),
-      child: Column(
-        children: [
-          // register as donor text
-          Text('Register as Donor'),
+    return Scaffold(
+      body: Container(
+        padding: EdgeInsets.all(10),
+        child: Column(
+          children: [
+            // register as donor text
+            Text('Register as Donor'),
 
-          // full name text field
-          MyTextField(),
+            // full name text field
+            MyTextField(),
 
-          // email field
-          MyTextField(),
+            // email field
+            MyTextField(),
 
-          // enter phone number field
-          MyTextField(),
+            // enter phone number field
+            MyTextField(),
 
-          // drop down menu for blood group selection
-          // TODO: will be implemented
+            // drop down menu for blood group selection
+            // TODO: will be implemented
 
-          // address field
-          MyTextField(),
+            // address field
+            MyTextField(),
 
-          // register confimation button
-          MyCustomButtom(),
-        ],
+            // register confimation button
+            MyCustomButtom(),
+          ],
+        ),
       ),
     );
   }

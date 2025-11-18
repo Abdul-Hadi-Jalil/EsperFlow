@@ -7,36 +7,38 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(10),
-      child: Column(
-        children: [
-          Text('ESPERFLOW'),
-          Text('Donate Life, Save Lives'),
+    return Scaffold(
+      body: Container(
+        padding: EdgeInsets.all(10),
+        child: Column(
+          children: [
+            Text('ESPERFLOW'),
+            Text('Donate Life, Save Lives'),
 
-          // email text field
-          MyTextField(),
+            // email text field
+            MyTextField(),
 
-          // password field
-          MyTextField(),
+            // password field
+            MyTextField(),
 
-          // forgot text button
-          TextButton(onPressed: () {}, child: Text('Forgot Password')),
+            // forgot text button
+            TextButton(onPressed: () {}, child: Text('Forgot Password')),
 
-          // login button
-          MyCustomButtom(),
+            // login button
+            MyCustomButtom(),
 
-          // esperflow logo
-          // TODO: use image or icon
+            // esperflow logo
+            // TODO: use image or icon
 
-          // register option if user dont have an account
-          Row(
-            children: [
-              Text('Don\'t have an account? '),
-              TextButton(onPressed: () {}, child: Text('Register')),
-            ],
-          ),
-        ],
+            // register option if user dont have an account
+            Row(
+              children: [
+                Text('Don\'t have an account? '),
+                TextButton(onPressed: () {}, child: Text('Register')),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
