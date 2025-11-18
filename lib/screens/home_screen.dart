@@ -75,6 +75,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
+
+            // bottom image of home screen
+            // TODO: an image of home screen
           ],
         ),
       ),

@@ -1,3 +1,5 @@
+// used in home screen
+
 import 'package:flutter/material.dart';
 
 class MenuItemCard extends StatelessWidget {
