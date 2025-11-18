@@ -16,13 +16,20 @@ class MyCustomButtom extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: backgroundColor,
-      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(9),
+      ),
+      padding: EdgeInsets.all(15),
       margin: EdgeInsets.symmetric(horizontal: 25),
       child: Center(
         child: Text(
           text,
-          style: textColor != null ? TextStyle(color: textColor) : null,
+          style: TextStyle(
+            color: textColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
         ),
       ),
     );

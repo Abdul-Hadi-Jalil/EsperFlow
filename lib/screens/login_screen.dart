@@ -9,32 +9,73 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        padding: EdgeInsets.all(10),
+        padding: EdgeInsets.all(20),
         child: Column(
+          spacing: 20,
           children: [
-            Text('ESPERFLOW'),
+            Text(
+              'ESPERFLOW',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
             Text('Donate Life, Save Lives'),
 
             // email text field
-            MyTextField(hintText: "Email"),
+            MyTextField(hintText: "Email", suffixIcon: Icons.email_outlined),
 
             // password field
-            MyTextField(hintText: "Password"),
+            MyTextField(
+              hintText: "Password",
+              obsecureFlag: true,
+              suffixIcon: Icons.remove_red_eye_outlined,
+            ),
 
             // forgot text button
-            TextButton(onPressed: () {}, child: Text('Forgot Password')),
+            Padding(
+              padding: const EdgeInsets.only(left: 15),
+              child: Align(
+                alignment: AlignmentGeometry.centerLeft,
+                child: TextButton(
+                  onPressed: () {},
+                  child: Text(
+                    'Forgot Password?',
+                    style: TextStyle(
+                      fontStyle: FontStyle.italic,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ),
+            ),
 
             // login button
-            MyCustomButtom(backgroundColor: Colors.red, text: "Login"),
+            MyCustomButtom(
+              backgroundColor: Color(0xFFE31A1A),
+              text: "Login",
+              textColor: Colors.white,
+            ),
 
             // esperflow logo
-            // TODO: use image or icon
+            Image.asset('assets/images/esperflow_logo.png'),
 
             // register option if user dont have an account
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Don\'t have an account? '),
-                TextButton(onPressed: () {}, child: Text('Register')),
+                Text(
+                  'Don\'t have an account?',
+                  style: TextStyle(decoration: TextDecoration.underline),
+                ),
+                TextButton(
+                  onPressed: () {},
+                  child: Text(
+                    'Register',
+                    style: TextStyle(decoration: TextDecoration.underline),
+                  ),
+                ),
               ],
             ),
           ],
