@@ -18,12 +18,16 @@ class MenuItemCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(iconData, size: 30, color: Colors.black),
+          Icon(iconData, size: 28, color: Colors.black),
           SizedBox(width: 12),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(fontSize: 20, color: Colors.black),
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
