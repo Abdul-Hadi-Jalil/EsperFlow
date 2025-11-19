@@ -15,21 +15,18 @@ class MyTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: hintText,
-          fillColor: Colors.red.shade50,
-          filled: true,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(9),
-            borderSide: BorderSide(style: BorderStyle.none, width: 0),
-          ),
-          suffixIcon: suffixIcon != null ? Icon(suffixIcon) : null,
+    return TextField(
+      decoration: InputDecoration(
+        hintText: hintText,
+        fillColor: Colors.red.shade50,
+        filled: true,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(9),
+          borderSide: BorderSide(style: BorderStyle.none, width: 0),
         ),
-        obscureText: obsecureFlag,
+        suffixIcon: suffixIcon != null ? Icon(suffixIcon) : null,
       ),
+      obscureText: obsecureFlag,
     );
   }
 }

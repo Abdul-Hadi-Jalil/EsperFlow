@@ -92,7 +92,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       selectedBloodGroup = value!;
                     });
                   },
-                  isExpanded: true, // makes it full width like TextFields
+                  isExpanded: true,
                   borderRadius: BorderRadius.circular(9),
                 ),
               ),
