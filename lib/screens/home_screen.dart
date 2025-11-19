@@ -24,68 +24,92 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // circle avatar
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: Colors.grey.shade300,
-                    // TODO: Add user profile image
-                  ),
+      body: SingleChildScrollView(
+        child: Container(
+          color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // circle avatar
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Colors.black,
+                      child: CircleAvatar(
+                        radius: 19,
+                        backgroundColor: Colors.white,
+                        child: Icon(Icons.person, size: 24),
+                      ),
+                    ),
 
-                  // logo
-                  // TODO: put the logo , or image of esperflow
-                  Container(
-                    width: 100,
-                    height: 30,
-                    color: Colors.grey.shade200,
-                    child: Center(child: Text('LOGO')), // Placeholder
-                  ),
+                    // logo
+                    Image.asset(
+                      'assets/images/esperflow_logo.png',
+                      height: 150,
+                      width: 150,
+                    ),
 
-                  // notification bell icon
-                  IconButton(onPressed: () {}, icon: Icon(Icons.notifications)),
-                ],
-              ),
-
-              SizedBox(height: 20), // Added spacing
-              // grid view of menu items for user
-              Expanded(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                    childAspectRatio: 1.4, // Adjusted for better proportions
-                  ),
-                  itemCount: menuItems.length,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemBuilder: (BuildContext context, int index) {
-                    return MenuItemCard(
-                      iconData: menuItems[index]['iconData'] as IconData,
-                      text: menuItems[index]['text'] as String,
-                    );
-                  },
+                    // notification bell icon
+                    IconButton(
+                      onPressed: () {},
+                      icon: Icon(Icons.notifications, size: 24),
+                    ),
+                  ],
                 ),
-              ),
 
-              // bottom image of home screen
-              // TODO: an image of home screen
-              Container(
-                margin: EdgeInsets.only(top: 20),
-                width: double.infinity,
-                height: 100,
-                color: Colors.grey.shade200,
-                child: Center(child: Text('Home Screen Image')), // Placeholder
-              ),
-            ],
+                // grid view of menu items for user
+                GridView.count(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                  childAspectRatio: 2,
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  children: [
+                    MenuItemCard(
+                      iconData: Icons.bloodtype_outlined,
+                      text: 'Request Blood',
+                    ),
+                    MenuItemCard(
+                      iconData: Icons.heart_broken_outlined,
+                      text: 'Organ Donor',
+                    ),
+                    MenuItemCard(
+                      iconData: Icons.medical_services_rounded,
+                      text: 'Verified Hospitals',
+                    ),
+                    MenuItemCard(
+                      iconData: Icons.corporate_fare_outlined,
+                      text: 'Blood Banks',
+                    ),
+                    MenuItemCard(
+                      iconData: Icons.history,
+                      text: 'Donation History',
+                    ),
+                    MenuItemCard(
+                      iconData: Icons.question_answer_outlined,
+                      text: 'FAQs',
+                    ),
+                    MenuItemCard(
+                      iconData: Icons.phone_outlined,
+                      text: 'Emergency Contact',
+                    ),
+                    MenuItemCard(
+                      iconData: Icons.info_outline,
+                      text: 'About Us',
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 40),
+
+                // bottom image of home screen
+                Image.asset('assets/images/home_screen_footer.png'),
+              ],
+            ),
           ),
         ),
       ),

@@ -20,7 +20,6 @@ class _AdditionalInformationScreenState
           padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,20 +115,9 @@ class _AdditionalInformationScreenState
                   // yes/no option
                   Row(
                     children: [
-                      // Removed 'spacing' parameter
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {},
-                          child: Text('Yes'),
-                        ),
-                      ),
+                      OutlinedButton(onPressed: () {}, child: Text('Yes')),
                       SizedBox(width: 10), // Added proper spacing
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {},
-                          child: Text('No'),
-                        ),
-                      ),
+                      OutlinedButton(onPressed: () {}, child: Text('No')),
                     ],
                   ),
 
@@ -172,31 +160,17 @@ class _AdditionalInformationScreenState
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       // back button
-                      Expanded(
-                        child: Container(
-                          margin: EdgeInsets.only(
-                            right: 8,
-                          ), // Added spacing between buttons
-                          child: MyCustomButtom(
-                            backgroundColor: Colors.red.shade300,
-                            text: "Back",
-                            textColor: Colors.black,
-                          ),
-                        ),
+                      MyCustomButtom(
+                        backgroundColor: Colors.red.shade50,
+                        text: "Back",
+                        textColor: Colors.black,
                       ),
 
                       // submit button
-                      Expanded(
-                        child: Container(
-                          margin: EdgeInsets.only(
-                            left: 8,
-                          ), // Added spacing between buttons
-                          child: MyCustomButtom(
-                            backgroundColor: Colors.red,
-                            text: "Submit",
-                            textColor: Colors.white,
-                          ),
-                        ),
+                      MyCustomButtom(
+                        backgroundColor: Colors.red,
+                        text: "Submit",
+                        textColor: Colors.white,
                       ),
                     ],
                   ),
