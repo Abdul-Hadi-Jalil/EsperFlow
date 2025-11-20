@@ -11,15 +11,19 @@ class BloodRequestScreen extends StatefulWidget {
 
 class _BloodRequestScreenState extends State<BloodRequestScreen> {
   String? selectedBloodGroup;
-  final List<String> bloodGroups = [
-    'A+',
-    'A-',
-    'B+',
-    'B-',
-    'AB+',
-    'AB-',
-    'O+',
-    'O-',
+  List<String> bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
+  // list for required blood quantity
+  String? selectedQuatity;
+  List<String> bloodQuatity = [
+    '50ml',
+    '100ml',
+    '150ml',
+    '200ml',
+    '250ml',
+    '300ml',
+    '350ml',
+    '400ml',
   ];
 
   @override
@@ -91,17 +95,17 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
-                    value: selectedBloodGroup,
+                    value: selectedQuatity,
                     hint: Text(
                       "Required Blood Quatity",
                       style: TextStyle(color: Colors.grey[600]),
                     ),
-                    items: bloodGroups.map((group) {
+                    items: bloodQuatity.map((group) {
                       return DropdownMenuItem(value: group, child: Text(group));
                     }).toList(),
                     onChanged: (value) {
                       setState(() {
-                        selectedBloodGroup = value!;
+                        selectedQuatity = value!;
                       });
                     },
                     isExpanded: true,
