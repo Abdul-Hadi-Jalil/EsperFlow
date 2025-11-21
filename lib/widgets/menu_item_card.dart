@@ -14,7 +14,6 @@ class MenuItemCard extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border.all(width: 1, color: Colors.grey.shade400),
         borderRadius: BorderRadius.circular(7),
-        color: Colors.white,
       ),
       child: Row(
         children: [

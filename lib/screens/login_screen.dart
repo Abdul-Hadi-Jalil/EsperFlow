@@ -8,19 +8,22 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text(
+          'ESPERFLOW',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+      ),
       body: Container(
         padding: EdgeInsets.all(20),
         child: Column(
           spacing: 20,
           children: [
-            Text(
-              'ESPERFLOW',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
             Text('Donate Life, Save Lives'),
 
             // email text field

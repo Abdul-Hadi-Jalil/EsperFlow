@@ -26,8 +26,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     ];
 
     return Scaffold(
-      body: Container(
-        padding: EdgeInsets.all(10),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             // logo
@@ -72,7 +72,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             // drop down menu for blood group selection
             Container(
               padding: EdgeInsets.symmetric(horizontal: 15),
-              margin: EdgeInsets.symmetric(horizontal: 25),
               decoration: BoxDecoration(
                 color: Colors.red.shade50,
                 borderRadius: BorderRadius.circular(9),
