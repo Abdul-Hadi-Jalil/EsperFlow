@@ -8,10 +8,13 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  int currentIndex = 1;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text('Profile', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
       ),
@@ -121,6 +124,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: (value) {
+          setState(() {
+            currentIndex = value;
+          });
+          if (currentIndex == 0) {
+            Navigator.pushNamed(context, '/homeScreen');
+          }
+        },
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(
+            label: 'Profile',
+            icon: CircleAvatar(
+              radius: 20,
+              backgroundColor: Colors.black,
+              child: CircleAvatar(
+                radius: 19,
+                backgroundColor: Colors.white,
+                child: Icon(Icons.person, size: 24),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -164,13 +164,19 @@ class _AdditionalInformationScreenState
                         backgroundColor: Colors.red.shade50,
                         text: "Back",
                         textColor: Colors.black,
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
                       ),
 
                       // submit button
                       MyCustomButtom(
-                        backgroundColor: Colors.red,
+                        backgroundColor: Color(0xFFE31A1A),
                         text: "Submit",
                         textColor: Colors.white,
+                        onTap: () {
+                          Navigator.pushNamed(context, '/loginScreen');
+                        },
                       ),
                     ],
                   ),

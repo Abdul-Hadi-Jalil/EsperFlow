@@ -109,6 +109,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               backgroundColor: Color(0xFFE31A1A),
               text: "Continue",
               textColor: Colors.white,
+              onTap: () {
+                Navigator.pushNamed(context, '/additionalInformationScreen');
+              },
             ),
           ],
         ),

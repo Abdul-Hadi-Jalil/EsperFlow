@@ -20,7 +20,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.red)),
-      home: FaqScreen(),
+      home: LoginScreen(),
+      routes: {
+        '/homeScreen': (context) => HomeScreen(),
+        '/loginScreen': (context) => LoginScreen(),
+        '/registerScreen': (context) => RegisterScreen(),
+        '/additionalInformationScreen': (context) =>
+            AdditionalInformationScreen(),
+        '/bloodRequestScreen': (context) => BloodRequestScreen(),
+        '/faqScreen': (context) => FaqScreen(),
+        '/profileScreen': (context) => ProfileScreen(),
+      },
     );
   }
 }

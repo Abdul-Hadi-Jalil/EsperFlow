@@ -6,19 +6,15 @@ class FaqScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.only(
-            left: 8.0,
-            bottom: 8,
-            top: 25,
-            right: 8,
-          ),
+          padding: const EdgeInsets.only(left: 8.0, bottom: 8, right: 8),
           child: Column(
             children: [
               // logo and text
               Container(
-                padding: EdgeInsets.all(20),
+                padding: EdgeInsets.only(left: 20, right: 20, bottom: 20),
                 child: Column(
                   children: [
                     Image.asset(

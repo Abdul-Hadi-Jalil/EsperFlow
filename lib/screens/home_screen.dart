@@ -9,17 +9,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // List of menu items
-  final List<Map<String, dynamic>> menuItems = [
-    {'iconData': Icons.bloodtype_outlined, 'text': "Request Blood"},
-    {'iconData': Icons.heart_broken_outlined, 'text': "Organ Donor"},
-    {'iconData': Icons.medical_services_rounded, 'text': "Verified Hospitals"},
-    {'iconData': Icons.corporate_fare_outlined, 'text': "Blood Banks"},
-    {'iconData': Icons.history, 'text': "Donation History"},
-    {'iconData': Icons.question_answer_outlined, 'text': "FAQs"},
-    {'iconData': Icons.phone_outlined, 'text': "Emergency Contact"},
-    {'iconData': Icons.question_answer_outlined, 'text': "About Us"},
-  ];
+  // used for bottom navigation
+  int currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +61,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   MenuItemCard(
                     iconData: Icons.bloodtype_outlined,
                     text: 'Request Blood',
+                    onTap: () =>
+                        Navigator.pushNamed(context, '/bloodRequestScreen'),
                   ),
                   MenuItemCard(
                     iconData: Icons.heart_broken_outlined,
@@ -90,6 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   MenuItemCard(
                     iconData: Icons.question_answer_outlined,
                     text: 'FAQs',
+                    onTap: () => Navigator.pushNamed(context, '/faqScreen'),
                   ),
                   MenuItemCard(
                     iconData: Icons.phone_outlined,
@@ -106,6 +100,32 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: currentIndex,
+        onTap: (value) {
+          setState(() {
+            currentIndex = value;
+          });
+          if (currentIndex == 1) {
+            Navigator.pushNamed(context, '/profileScreen');
+          }
+        },
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(
+            label: 'Profile',
+            icon: CircleAvatar(
+              radius: 20,
+              backgroundColor: Colors.black,
+              child: CircleAvatar(
+                radius: 19,
+                backgroundColor: Colors.white,
+                child: Icon(Icons.person, size: 24),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

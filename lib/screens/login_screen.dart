@@ -59,6 +59,9 @@ class LoginScreen extends StatelessWidget {
               backgroundColor: Color(0xFFE31A1A),
               text: "Login",
               textColor: Colors.white,
+              onTap: () {
+                Navigator.pushNamed(context, '/homeScreen');
+              },
             ),
 
             // esperflow logo
@@ -73,7 +76,9 @@ class LoginScreen extends StatelessWidget {
                   style: TextStyle(decoration: TextDecoration.underline),
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/registerScreen');
+                  },
                   child: Text(
                     'Register',
                     style: TextStyle(decoration: TextDecoration.underline),
