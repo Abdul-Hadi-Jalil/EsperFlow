@@ -1,3 +1,4 @@
+import 'package:esperflow/firebase_options.dart';
 import 'package:esperflow/screens/additional_information_screen.dart';
 import 'package:esperflow/screens/blood_request_screen.dart';
 import 'package:esperflow/screens/faq_screen.dart';
@@ -5,14 +6,17 @@ import 'package:esperflow/screens/home_screen.dart';
 import 'package:esperflow/screens/login_screen.dart';
 import 'package:esperflow/screens/profile_screen.dart';
 import 'package:esperflow/screens/register_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(const EsperFlow());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class EsperFlow extends StatelessWidget {
+  const EsperFlow({super.key});
 
   // This widget is the root of your application.
   @override
