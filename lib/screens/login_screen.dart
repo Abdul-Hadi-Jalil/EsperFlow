@@ -1,9 +1,32 @@
 import 'package:esperflow/widgets/my_custom_buttom.dart';
 import 'package:esperflow/widgets/my_text_field.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  Future<void> signIn() async {
+    await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,10 +50,15 @@ class LoginScreen extends StatelessWidget {
             Text('Donate Life, Save Lives'),
 
             // email text field
-            MyTextField(hintText: "Email", suffixIcon: Icons.email_outlined),
+            MyTextField(
+              controller: _emailController,
+              hintText: "Email",
+              suffixIcon: Icons.email_outlined,
+            ),
 
             // password field
             MyTextField(
+              controller: _passwordController,
               hintText: "Password",
               obsecureFlag: true,
               suffixIcon: Icons.remove_red_eye_outlined,
@@ -59,9 +87,7 @@ class LoginScreen extends StatelessWidget {
               backgroundColor: Color(0xFFE31A1A),
               text: "Login",
               textColor: Colors.white,
-              onTap: () {
-                Navigator.pushNamed(context, '/homeScreen');
-              },
+              onTap: signIn,
             ),
 
             // esperflow logo

@@ -12,6 +12,7 @@ class AdditionalInformationScreen extends StatefulWidget {
 
 class _AdditionalInformationScreenState
     extends State<AdditionalInformationScreen> {
+  final TextEditingController _cnicController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,7 +60,10 @@ class _AdditionalInformationScreenState
 
                   SizedBox(height: 15), // Reduced from 20
                   // CNIC field
-                  MyTextField(hintText: "CNIC Number"),
+                  MyTextField(
+                    hintText: "CNIC Number",
+                    controller: _cnicController,
+                  ),
 
                   SizedBox(height: 15), // Reduced from 20
                   // upload cnic image button

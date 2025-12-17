@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 
 class MyTextField extends StatelessWidget {
+  final TextEditingController controller;
   final String hintText;
   final bool obsecureFlag;
   final IconData? suffixIcon;
@@ -11,11 +12,13 @@ class MyTextField extends StatelessWidget {
     required this.hintText,
     this.obsecureFlag = false,
     this.suffixIcon,
+    required this.controller,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: controller,
       decoration: InputDecoration(
         hintText: hintText,
         fillColor: Colors.red.shade50,

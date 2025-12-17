@@ -10,6 +10,12 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  // controllers
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+
   String? selectedBloodGroup;
 
   @override
@@ -55,17 +61,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
             SizedBox(height: 30),
 
             // full name text field
-            MyTextField(hintText: "Full Name"),
+            MyTextField(controller: _fullNameController, hintText: "Full Name"),
 
             SizedBox(height: 20),
 
             // email field
-            MyTextField(hintText: "Email"),
+            MyTextField(controller: _emailController, hintText: "Email"),
 
             SizedBox(height: 20),
 
             // enter phone number field
-            MyTextField(hintText: "Phone Number (+92)"),
+            MyTextField(
+              controller: _phoneNumberController,
+              hintText: "Phone Number (+92)",
+            ),
 
             SizedBox(height: 20),
 
@@ -100,7 +109,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             SizedBox(height: 20),
 
             // address field
-            MyTextField(hintText: "Current Address"),
+            MyTextField(
+              controller: _addressController,
+              hintText: "Current Address",
+            ),
 
             SizedBox(height: 60),
 

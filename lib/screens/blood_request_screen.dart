@@ -10,6 +10,13 @@ class BloodRequestScreen extends StatefulWidget {
 }
 
 class _BloodRequestScreenState extends State<BloodRequestScreen> {
+  // controllers
+  final TextEditingController _fullNameController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _cnicController = TextEditingController();
+  final TextEditingController _additionalController = TextEditingController();
+
   String? selectedBloodGroup;
   List<String> bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -43,10 +50,16 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
             spacing: 24,
             children: [
               // full name field
-              MyTextField(hintText: "Full Name"),
+              MyTextField(
+                controller: _fullNameController,
+                hintText: "Full Name",
+              ),
 
               // phone number field
-              MyTextField(hintText: 'Phone Number'),
+              MyTextField(
+                controller: _phoneNumberController,
+                hintText: 'Phone Number',
+              ),
 
               // drop down menu for blood group selection
               Container(
@@ -124,13 +137,22 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
               ),
 
               // location field
-              MyTextField(hintText: "Location"),
+              MyTextField(
+                hintText: "Location",
+                controller: _locationController,
+              ),
 
               // hospital or cnic field
-              MyTextField(hintText: "Hospital or CNIC"),
+              MyTextField(
+                hintText: "Hospital or CNIC",
+                controller: _cnicController,
+              ),
 
               // additional notes
-              MyTextField(hintText: "Additional Notes (Optional)"),
+              MyTextField(
+                hintText: "Additional Notes (Optional)",
+                controller: _additionalController,
+              ),
 
               // submit button
               MyCustomButtom(
