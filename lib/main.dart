@@ -1,4 +1,6 @@
+import 'package:esperflow/app.dart';
 import 'package:esperflow/firebase_options.dart';
+import 'package:esperflow/provider/register_provider.dart';
 import 'package:esperflow/screens/additional_information_screen.dart';
 import 'package:esperflow/screens/blood_request_screen.dart';
 import 'package:esperflow/screens/faq_screen.dart';
@@ -8,6 +10,7 @@ import 'package:esperflow/screens/profile_screen.dart';
 import 'package:esperflow/screens/register_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,20 +24,25 @@ class EsperFlow extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.red)),
-      home: LoginScreen(),
-      routes: {
-        '/homeScreen': (context) => HomeScreen(),
-        '/loginScreen': (context) => LoginScreen(),
-        '/registerScreen': (context) => RegisterScreen(),
-        '/additionalInformationScreen': (context) =>
-            AdditionalInformationScreen(),
-        '/bloodRequestScreen': (context) => BloodRequestScreen(),
-        '/faqScreen': (context) => FaqScreen(),
-        '/profileScreen': (context) => ProfileScreen(),
-      },
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => RegisterProvider()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.red)),
+        home: App(),
+        routes: {
+          '/homeScreen': (context) => HomeScreen(),
+          '/loginScreen': (context) => LoginScreen(),
+          '/registerScreen': (context) => RegisterScreen(),
+          '/additionalInformationScreen': (context) =>
+              AdditionalInformationScreen(),
+          '/bloodRequestScreen': (context) => BloodRequestScreen(),
+          '/faqScreen': (context) => FaqScreen(),
+          '/profileScreen': (context) => ProfileScreen(),
+        },
+      ),
     );
   }
 }
