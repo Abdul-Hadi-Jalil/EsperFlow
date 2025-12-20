@@ -24,13 +24,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   // circle avatar
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: Colors.black,
+                  InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(context, '/profileScreen');
+                    },
                     child: CircleAvatar(
-                      radius: 19,
-                      backgroundColor: Colors.white,
-                      child: Icon(Icons.person, size: 24),
+                      radius: 20,
+                      backgroundColor: Colors.black,
+                      child: CircleAvatar(
+                        radius: 19,
+                        backgroundColor: Colors.white,
+                        child: Icon(Icons.person, size: 24),
+                      ),
                     ),
                   ),
 

@@ -81,6 +81,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               MyTextField(
                 controller: _passwordController,
                 hintText: "Password",
+                obsecureFlag: true,
+                labelText: "Cannot be less than 7 characters",
               ),
 
               SizedBox(height: 20),
@@ -145,7 +147,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     newBloodGroup: selectedBloodGroup ?? " ",
                     newAddress: _addressController.text,
                   );
-                  Navigator.pushNamed(context, '/additionalInformationScreen');
+                  if (_phoneNumberController.text.length == 13 &&
+                      _phoneNumberController.text.startsWith("+92")) {
+                    Navigator.pushNamed(
+                      context,
+                      '/additionalInformationScreen',
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Please enter a valid Phone number"),
+                      ),
+                    );
+                  }
                 },
               ),
             ],

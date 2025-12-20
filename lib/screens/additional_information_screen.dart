@@ -131,7 +131,7 @@ class _AdditionalInformationScreenState
                       ), // Reduced margin
                       child: Center(
                         child: ListTile(
-                          title: Text('Last Blood Donation'),
+                          title: Text('Last Blood Donation (Optional)'),
                           trailing: IconButton(
                             onPressed: () {
                               showDatePicker(

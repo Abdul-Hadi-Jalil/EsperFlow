@@ -28,6 +28,45 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  Future<void> showResetPasswordDialog(BuildContext context) async {
+    final emailController = TextEditingController();
+
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Reset Password"),
+        content: TextField(
+          controller: emailController,
+          decoration: InputDecoration(hintText: "Enter your email"),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () async {
+              try {
+                await FirebaseAuth.instance.sendPasswordResetEmail(
+                  email: emailController.text,
+                );
+                Navigator.pop(context);
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text("Reset email sent!")));
+              } catch (e) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text("Error: $e")));
+              }
+            },
+            child: Text("Send"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,7 +110,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Align(
                   alignment: AlignmentGeometry.centerLeft,
                   child: TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      showResetPasswordDialog(context);
+                    },
                     child: Text(
                       'Forgot Password?',
                       style: TextStyle(

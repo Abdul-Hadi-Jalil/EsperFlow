@@ -7,12 +7,14 @@ class MyTextField extends StatelessWidget {
   final String hintText;
   final bool obsecureFlag;
   final IconData? suffixIcon;
+  final String? labelText;
   const MyTextField({
     super.key,
     required this.hintText,
     this.obsecureFlag = false,
     this.suffixIcon,
     required this.controller,
+    this.labelText,
   });
 
   @override
@@ -20,6 +22,7 @@ class MyTextField extends StatelessWidget {
     return TextField(
       controller: controller,
       decoration: InputDecoration(
+        labelText: labelText,
         hintText: hintText,
         fillColor: Colors.red.shade50,
         filled: true,
