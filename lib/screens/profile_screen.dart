@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -121,6 +122,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   subTitle: "2023-8-13",
                 ),
               ],
+            ),
+
+            SizedBox(height: 40),
+
+            // sign out button
+            InkWell(
+              onTap: () async {
+                await FirebaseAuth.instance.signOut();
+
+                // Navigate back to the root (App widget)
+                if (context.mounted) {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/', // This goes back to the App widget
+                    (route) => false,
+                  );
+                }
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+                padding: EdgeInsets.all(14),
+                margin: EdgeInsets.symmetric(horizontal: 0), // Reduced margin
+                child: Center(
+                  child: Text(
+                    'Sign Out',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
             ),
           ],
         ),

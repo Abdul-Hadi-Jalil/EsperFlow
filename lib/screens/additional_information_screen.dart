@@ -1,7 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:esperflow/provider/register_provider.dart';
 import 'package:esperflow/widgets/my_custom_buttom.dart';
 import 'package:esperflow/widgets/my_text_field.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 class AdditionalInformationScreen extends StatefulWidget {
   const AdditionalInformationScreen({super.key});
@@ -18,10 +22,76 @@ class _AdditionalInformationScreenState
   String? lastBloodDonation;
   bool? healthIssue;
 
+  bool healthCondition = false;
+  bool termConditions = false;
+
   Future<void> pickAndPreprocessImage() async {
     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
 
     if (image != null) {}
+  }
+
+  // function to create and register user
+  Future<void> createUser() async {
+    try {
+      final registerProvider = Provider.of<RegisterProvider>(
+        context,
+        listen: false,
+      );
+
+      // Create user in Firebase Authentication
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: registerProvider.email,
+            password: registerProvider.password,
+          );
+
+      // Get the created user
+      User? user = userCredential.user;
+
+      if (user != null) {
+        // User registered successfully
+        debugPrint('User registered successfully: ${user.uid}');
+        return; // Success
+      } else {
+        throw Exception('User registration failed');
+      }
+    } catch (e) {
+      debugPrint('Registration error: $e');
+      rethrow; // Re-throw to handle in UI
+    }
+  }
+
+  Future<void> saveUserDataToFirestore() async {
+    try {
+      final registerProvider = Provider.of<RegisterProvider>(
+        context,
+        listen: false,
+      );
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        throw Exception('No authenticated user found');
+      }
+
+      // Use user.uid as document ID instead of add()
+      await FirebaseFirestore.instance.collection("User").doc(user.uid).set({
+        "uid": user.uid,
+        "Full Name": registerProvider.name,
+        "Email": registerProvider.email,
+        "Phone Number": registerProvider.phoneNumber,
+        "Blood Group": registerProvider.bloodGroup,
+        "Current Address": registerProvider.address,
+        "Last Blood Donation": lastBloodDonation,
+        "CNIC Number": _cnicController.text,
+        "Health Issue": healthIssue,
+      });
+
+      debugPrint('User data saved to Firestore successfully');
+    } catch (e) {
+      debugPrint('Firestore save error: $e');
+      rethrow;
+    }
   }
 
   @override
@@ -135,9 +205,37 @@ class _AdditionalInformationScreenState
                     // yes/no option
                     Row(
                       children: [
-                        OutlinedButton(onPressed: () {}, child: Text('Yes')),
+                        OutlinedButton(
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStateProperty.all(
+                              healthIssue == true
+                                  ? Colors.red.shade100
+                                  : Colors.white,
+                            ),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              healthIssue = true;
+                            });
+                          },
+                          child: Text('Yes'),
+                        ),
                         SizedBox(width: 10), // Added proper spacing
-                        OutlinedButton(onPressed: () {}, child: Text('No')),
+                        OutlinedButton(
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStateProperty.all(
+                              healthIssue == false
+                                  ? Colors.red.shade100
+                                  : Colors.white,
+                            ),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              healthIssue = false;
+                            });
+                          },
+                          child: Text('No'),
+                        ),
                       ],
                     ),
 
@@ -145,7 +243,14 @@ class _AdditionalInformationScreenState
                     // check boxes for agreement
                     Row(
                       children: [
-                        Checkbox(value: false, onChanged: null),
+                        Checkbox(
+                          value: healthCondition,
+                          onChanged: (newValue) {
+                            setState(() {
+                              healthCondition = newValue!;
+                            });
+                          },
+                        ),
                         Expanded(
                           // Added Expanded to prevent text overflow
                           child: Text(
@@ -158,7 +263,14 @@ class _AdditionalInformationScreenState
 
                     Row(
                       children: [
-                        Checkbox(value: false, onChanged: null),
+                        Checkbox(
+                          value: termConditions,
+                          onChanged: (newValue) {
+                            setState(() {
+                              termConditions = newValue!;
+                            });
+                          },
+                        ),
                         Expanded(
                           // Added Expanded to prevent text overflow
                           child: Text(
@@ -194,8 +306,18 @@ class _AdditionalInformationScreenState
                           backgroundColor: Color(0xFFE31A1A),
                           text: "Submit",
                           textColor: Colors.white,
-                          onTap: () {
-                            Navigator.pushNamed(context, '/loginScreen');
+                          onTap: () async {
+                            await createUser();
+
+                            await saveUserDataToFirestore();
+
+                            if (context.mounted) {
+                              Navigator.pushNamedAndRemoveUntil(
+                                context,
+                                '/',
+                                (route) => false,
+                              );
+                            }
                           },
                         ),
                       ],
