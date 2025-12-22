@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:esperflow/widgets/my_custom_buttom.dart';
 import 'package:esperflow/widgets/my_text_field.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +33,28 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
     '350ml',
     '400ml',
   ];
+
+  Future<void> saveBloodRequestData() async {
+    await FirebaseFirestore.instance.collection('Blood Request').add({
+      "Full Name": _fullNameController.text,
+      "Phone Number": _phoneNumberController.text,
+      "Blood Group": selectedBloodGroup,
+      "Required Blood Quantity": selectedQuatity,
+      "Location": _locationController.text,
+      "CNIC": _cnicController.text,
+      "Additional Notes": _additionalController.text,
+    });
+  }
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _locationController.dispose();
+    _phoneNumberController.dispose();
+    _cnicController.dispose();
+    _additionalController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -156,6 +179,10 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
 
               // submit button
               MyCustomButtom(
+                onTap: () {
+                  saveBloodRequestData();
+                  Navigator.pop(context);
+                },
                 backgroundColor: Color(0xFFE31A1A),
                 text: "Submit Request",
                 textColor: Colors.white,

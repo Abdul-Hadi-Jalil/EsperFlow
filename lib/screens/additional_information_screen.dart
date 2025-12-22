@@ -25,10 +25,14 @@ class _AdditionalInformationScreenState
   bool healthCondition = false;
   bool termConditions = false;
 
+  XFile? selectedImage;
+
   Future<void> pickAndPreprocessImage() async {
     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
 
-    if (image != null) {}
+    if (image != null) {
+      selectedImage = image;
+    }
   }
 
   // function to create and register user
