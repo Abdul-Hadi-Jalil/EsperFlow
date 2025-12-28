@@ -127,18 +127,15 @@ class _AdditionalInformationScreenState
       // 3. Simple color analysis for ID card background
       // Pakistan ID cards often have white/light background
       final samplePoints = [
-        img.getPixel(image, width ~/ 4, height ~/ 4),
-        img.getPixel(image, 3 * width ~/ 4, height ~/ 4),
-        img.getPixel(image, width ~/ 4, 3 * height ~/ 4),
-        img.getPixel(image, 3 * width ~/ 4, 3 * height ~/ 4),
+        image.getPixel(width ~/ 4, height ~/ 4),
+        image.getPixel(3 * width ~/ 4, height ~/ 4),
+        image.getPixel(width ~/ 4, 3 * height ~/ 4),
+        image.getPixel(3 * width ~/ 4, 3 * height ~/ 4),
       ];
 
       int lightPixels = 0;
       for (var pixel in samplePoints) {
-        final luminance =
-            (0.299 * img.getRed(pixel) +
-            0.587 * img.getGreen(pixel) +
-            0.114 * img.getBlue(pixel));
+        final luminance = (0.299 * pixel.r + 0.587 * pixel.g + 0.114 * pixel.b);
         if (luminance > 150) {
           // Bright pixel
           lightPixels++;
@@ -156,23 +153,25 @@ class _AdditionalInformationScreenState
       // Simple edge detection on horizontal center line
       int edgeCount = 0;
       final midY = height ~/ 2;
-      final previousPixel = img.getPixel(image, 0, midY);
+      var previousPixel = image.getPixel(0, midY);
 
       for (int x = 1; x < width; x++) {
-        final currentPixel = img.getPixel(image, x, midY);
+        final currentPixel = image.getPixel(x, midY);
 
         final prevLuminance =
-            (0.299 * img.getRed(previousPixel) +
-            0.587 * img.getGreen(previousPixel) +
-            0.114 * img.getBlue(previousPixel));
+            (0.299 * previousPixel.r +
+            0.587 * previousPixel.g +
+            0.114 * previousPixel.b);
         final currLuminance =
-            (0.299 * img.getRed(currentPixel) +
-            0.587 * img.getGreen(currentPixel) +
-            0.114 * img.getBlue(currentPixel));
+            (0.299 * currentPixel.r +
+            0.587 * currentPixel.g +
+            0.114 * currentPixel.b);
 
         if ((currLuminance - prevLuminance).abs() > 50) {
           edgeCount++;
         }
+
+        previousPixel = currentPixel;
       }
 
       // ID cards should have text/edges

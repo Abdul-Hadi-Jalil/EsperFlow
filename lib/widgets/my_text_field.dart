@@ -8,6 +8,10 @@ class MyTextField extends StatelessWidget {
   final bool obsecureFlag;
   final IconData? suffixIcon;
   final String? labelText;
+  final TextInputType? keyboardType;
+  final Function(String)? onChanged;
+  final String? Function(String?)? validator;
+
   const MyTextField({
     super.key,
     required this.hintText,
@@ -15,12 +19,17 @@ class MyTextField extends StatelessWidget {
     this.suffixIcon,
     required this.controller,
     this.labelText,
+    this.keyboardType,
+    this.onChanged,
+    this.validator,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
+      keyboardType: keyboardType,
+      onChanged: onChanged,
       decoration: InputDecoration(
         labelText: labelText,
         hintText: hintText,
