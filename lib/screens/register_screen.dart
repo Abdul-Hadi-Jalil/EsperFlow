@@ -82,7 +82,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _passwordController,
                 hintText: "Password",
                 obsecureFlag: true,
-                labelText: "Cannot be less than 7 characters",
               ),
 
               SizedBox(height: 20),
