@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class BloodBanksScreen extends StatelessWidget {
-   BloodBanksScreen({super.key});
+  BloodBanksScreen({super.key});
 
   // List of blood donation organizations with links
   final List<Map<String, dynamic>> bloodOrganizations = [
     {
       'name': 'Pakistan Red Crescent Society',
       'description': 'National blood transfusion service',
-      'phone': '051-9250404',
+      'phone': '0519250404', // Changed: removed dashes
       'website': 'https://www.prcs.org.pk/',
       'icon': Icons.flag_outlined,
       'color': Colors.red,
@@ -17,7 +17,7 @@ class BloodBanksScreen extends StatelessWidget {
     {
       'name': 'Fatmid Foundation',
       'description': 'Thalassemia & blood disorder center',
-      'phone': '021-111-123-456',
+      'phone': '021111123456', // Changed: removed dashes
       'website': 'https://www.fatmid.org/',
       'icon': Icons.medical_services_outlined,
       'color': Colors.green,
@@ -25,7 +25,7 @@ class BloodBanksScreen extends StatelessWidget {
     {
       'name': 'Shaukat Khanum Memorial Hospital',
       'description': 'Cancer hospital blood bank',
-      'phone': '042-35905000',
+      'phone': '04235905000', // Changed: removed dashes
       'website': 'https://www.shaukatkhanum.org.pk/',
       'icon': Icons.local_hospital_outlined,
       'color': Colors.blue,
@@ -33,7 +33,7 @@ class BloodBanksScreen extends StatelessWidget {
     {
       'name': 'Edhi Foundation',
       'description': 'Emergency blood donation service',
-      'phone': '021-111-111-111',
+      'phone': '021111111111', // Changed: removed dashes
       'website': 'https://edhi.org/',
       'icon': Icons.emergency_outlined,
       'color': Colors.orange,
@@ -49,7 +49,7 @@ class BloodBanksScreen extends StatelessWidget {
     {
       'name': 'JDC Foundation',
       'description': 'Medical & blood donation services',
-      'phone': '021-111-111-112',
+      'phone': '021111111112', // Changed: removed dashes
       'website': 'https://www.jdcwelfare.org/',
       'icon': Icons.group_outlined,
       'color': Colors.teal,
@@ -57,7 +57,7 @@ class BloodBanksScreen extends StatelessWidget {
     {
       'name': 'Punjab Blood Transfusion Service',
       'description': 'Government blood bank network',
-      'phone': '042-99200100',
+      'phone': '04299200100', // Changed: removed dashes
       'website': 'http://pbs.punjab.gov.pk/',
       'icon': Icons.bloodtype_outlined,
       'color': Colors.deepOrange,
@@ -65,7 +65,7 @@ class BloodBanksScreen extends StatelessWidget {
     {
       'name': 'Saylani Welfare Trust',
       'description': 'Free blood bank services',
-      'phone': '021-111-111-113',
+      'phone': '021111111113', // Changed: removed dashes
       'website': 'https://saylaniwelfare.com/',
       'icon': Icons.volunteer_activism_outlined,
       'color': Colors.indigo,
@@ -91,21 +91,55 @@ class BloodBanksScreen extends StatelessWidget {
     },
   ];
 
-  void _openWebsite(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
+  Future<void> _openWebsite(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication, // This is important
+        );
+      } else {
+        _showErrorSnackBar('Could not launch $url');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Error: ${e.toString()}');
     }
   }
 
-  void _makeCall(String phone) async {
-    final uri = Uri.parse('tel:$phone');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
+  Future<void> _makeCall(String phone) async {
+    try {
+      // Clean the phone number - remove any non-digit characters
+      final cleanedPhone = phone.replaceAll(RegExp(r'[^0-9+]'), '');
+      
+      // Check if it's a valid phone number
+      if (cleanedPhone.isEmpty) {
+        _showErrorSnackBar('Invalid phone number');
+        return;
+      }
+
+      final uri = Uri.parse('tel:$cleanedPhone');
+      
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        _showErrorSnackBar('Could not make call to $phone');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Error: ${e.toString()}');
     }
   }
 
-  Widget _organizationCard(Map<String, dynamic> org) {
+  void _showErrorSnackBar(String message) {
+    // We'll show the snackbar using a global key or context
+    // For now, print to console
+    print(message);
+  }
+
+  Widget _organizationCard(Map<String, dynamic> org, BuildContext context) {
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 12),
@@ -191,7 +225,7 @@ class BloodBanksScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          org['phone'],
+                          _formatPhoneNumber(org['phone']),
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -264,6 +298,20 @@ class BloodBanksScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatPhoneNumber(String phone) {
+    // Format phone number for display
+    if (phone.length >= 10) {
+      if (phone.startsWith('0')) {
+        return '+92 ${phone.substring(1, 4)} ${phone.substring(4, 7)} ${phone.substring(7)}';
+      } else if (phone.startsWith('92')) {
+        return '+${phone.substring(0, 2)} ${phone.substring(2, 5)} ${phone.substring(5, 8)} ${phone.substring(8)}';
+      } else if (phone.length == 4) {
+        return phone; // For short numbers like 1020
+      }
+    }
+    return phone;
   }
 
   @override
@@ -342,67 +390,7 @@ class BloodBanksScreen extends StatelessWidget {
                 ),
                 
                 const SizedBox(height: 20),
-                
-                // Donation Tips
-                Text(
-                  'Quick Blood Donation Tips',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red.shade800,
-                  ),
-                ),
-                
-                const SizedBox(height: 12),
-                
-                GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 3,
-                  children: quickTips.map((tip) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.red.shade100),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.red.shade50,
-                            blurRadius: 5,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                          children: [
-                            Text(
-                              tip['icon']!,
-                              style: const TextStyle(fontSize: 20),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                tip['tip']!,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey.shade800,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-                
-                const SizedBox(height: 20),
-                
+               
                 // Organizations Header
                 Row(
                   children: [
@@ -438,7 +426,7 @@ class BloodBanksScreen extends StatelessWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: bloodOrganizations.length,
                   itemBuilder: (context, index) {
-                    return _organizationCard(bloodOrganizations[index]);
+                    return _organizationCard(bloodOrganizations[index], context);
                   },
                 ),
                 

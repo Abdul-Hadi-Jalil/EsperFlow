@@ -209,11 +209,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       SizedBox(height: 12),
                       ElevatedButton(
                         onPressed: _loadUserData,
-                        child: Text('Retry'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
                           foregroundColor: Colors.white,
                         ),
+                        child: Text('Retry'),
                       ),
                     ],
                   ),

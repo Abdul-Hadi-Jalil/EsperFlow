@@ -221,8 +221,8 @@ class _DonationHistoryScreenState extends State<DonationHistoryScreen> {
         onPressed: () {
           _addTestDonation();
         },
-        child: Icon(Icons.add),
         tooltip: 'Add Test Donation',
+        child: Icon(Icons.add),
       ),
     );
   }
