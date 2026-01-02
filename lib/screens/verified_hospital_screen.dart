@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class VerifiedHospitalsScreen extends StatelessWidget {
+class VerifiedHospitalsScreen extends StatefulWidget {
   const VerifiedHospitalsScreen({super.key});
 
+  @override
+  State<VerifiedHospitalsScreen> createState() => _VerifiedHospitalsScreenState();
+}
+
+class _VerifiedHospitalsScreenState extends State<VerifiedHospitalsScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  List<Map<String, String>> filteredHospitals = [];
+
   // List of verified hospitals from your Excel data
-  final List<Map<String, String>> hospitals = const [
+  final List<Map<String, String>> allHospitals = [
     {
       'name': 'Mayo Hospital',
       'address': 'Nila Gumbad, Lahore',
@@ -218,6 +226,54 @@ class VerifiedHospitalsScreen extends StatelessWidget {
     },
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    // Initialize filtered list with all hospitals
+    filteredHospitals = List.from(allHospitals);
+    
+    // Add listener to search controller
+    _searchController.addListener(() {
+      _filterHospitals(_searchController.text);
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterHospitals(String query) {
+    if (query.isEmpty) {
+      // If query is empty, show all hospitals
+      setState(() {
+        filteredHospitals = List.from(allHospitals);
+      });
+    } else {
+      // Filter hospitals based on query
+      final filtered = allHospitals.where((hospital) {
+        final name = hospital['name']?.toLowerCase() ?? '';
+        final address = hospital['address']?.toLowerCase() ?? '';
+        final type = hospital['type']?.toLowerCase() ?? '';
+        final note = hospital['note']?.toLowerCase() ?? '';
+        final city = hospital['city']?.toLowerCase() ?? '';
+        
+        final searchQuery = query.toLowerCase();
+        
+        return name.contains(searchQuery) ||
+            address.contains(searchQuery) ||
+            type.contains(searchQuery) ||
+            note.contains(searchQuery) ||
+            city.contains(searchQuery);
+      }).toList();
+
+      setState(() {
+        filteredHospitals = filtered;
+      });
+    }
+  }
+
   void _callHospital(String phoneNumber) async {
     final url = Uri.parse('tel:$phoneNumber');
     if (await canLaunchUrl(url)) {
@@ -262,6 +318,21 @@ class VerifiedHospitalsScreen extends StatelessWidget {
           fontWeight: FontWeight.w600,
           color: color,
         ),
+      ),
+    );
+  }
+
+  Widget _buildClearSearchButton() {
+    return IconButton(
+      onPressed: () {
+        _searchController.clear();
+        setState(() {
+          filteredHospitals = List.from(allHospitals);
+        });
+      },
+      icon: Icon(
+        Icons.clear,
+        color: Colors.red.shade600,
       ),
     );
   }
@@ -364,16 +435,16 @@ class VerifiedHospitalsScreen extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: TextField(
+                        controller: _searchController,
                         decoration: InputDecoration(
-                          hintText: 'Search hospitals...',
+                          hintText: 'Search hospitals by name, address, type...',
                           border: InputBorder.none,
                           hintStyle: TextStyle(color: Colors.grey.shade500),
                         ),
-                        onChanged: (value) {
-                          // You can add search functionality here
-                        },
                       ),
                     ),
+                    if (_searchController.text.isNotEmpty)
+                      _buildClearSearchButton(),
                   ],
                 ),
               ),
@@ -383,185 +454,231 @@ class VerifiedHospitalsScreen extends StatelessWidget {
 
             // Hospital List
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: hospitals.length,
-                itemBuilder: (context, index) {
-                  final hospital = hospitals[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Colors.red.shade100, width: 1),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
+              child: filteredHospitals.isEmpty
+                  ? Center(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  hospital['name']!,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.red.shade800,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              _hospitalTypeBadge(hospital['type']!),
-                            ],
+                          Icon(
+                            Icons.search_off,
+                            size: 64,
+                            color: Colors.red.shade300,
                           ),
-
-                          const SizedBox(height: 8),
-
-                          // Address
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.location_on_outlined,
-                                color: Colors.red.shade600,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  hospital['address']!,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade700,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          // Note
+                          const SizedBox(height: 16),
                           Text(
-                            hospital['note']!,
+                            'No hospitals found',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red.shade800,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Try a different search term',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey.shade600,
-                              fontStyle: FontStyle.italic,
                             ),
                           ),
-
-                          const SizedBox(height: 12),
-
-                          Divider(
-                            color: Colors.red.shade100,
-                            height: 1,
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () {
+                              _searchController.clear();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red.shade700,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              'Clear Search',
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ),
-
-                          const SizedBox(height: 12),
-
-                          // Action Buttons
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              // Call Button
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () => _callHospital(hospital['phone']!),
-                                  icon: Icon(
-                                    Icons.call,
-                                    size: 18,
-                                    color: Colors.white,
-                                  ),
-                                  label: Text(
-                                    'Call',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red.shade700,
-                                    padding: const EdgeInsets.symmetric(vertical: 10),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              const SizedBox(width: 10),
-
-                              // Directions Button
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () => _openMaps(hospital['mapsLink']!),
-                                  icon: Icon(
-                                    Icons.directions,
-                                    size: 18,
-                                    color: Colors.red.shade700,
-                                  ),
-                                  label: Text(
-                                    'Directions',
-                                    style: TextStyle(
-                                      color: Colors.red.shade700,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    side: BorderSide(color: Colors.red.shade700),
-                                    padding: const EdgeInsets.symmetric(vertical: 10),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              const SizedBox(width: 10),
-
-                              // Phone Display
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 10,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.shade50,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.red.shade100),
-                                ),
-                                child: Column(
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: filteredHospitals.length,
+                      itemBuilder: (context, index) {
+                        final hospital = filteredHospitals[index];
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(color: Colors.red.shade100, width: 1),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      'Phone',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.red.shade600,
+                                    Expanded(
+                                      child: Text(
+                                        hospital['name']!,
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.red.shade800,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                    Text(
-                                      hospital['phone']!,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.red.shade700,
+                                    _hospitalTypeBadge(hospital['type']!),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 8),
+
+                                // Address
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.location_on_outlined,
+                                      color: Colors.red.shade600,
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        hospital['address']!,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey.shade700,
+                                        ),
                                       ),
                                     ),
                                   ],
                                 ),
-                              ),
-                            ],
+
+                                const SizedBox(height: 8),
+
+                                // Note
+                                Text(
+                                  hospital['note']!,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade600,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+
+                                const SizedBox(height: 12),
+
+                                Divider(
+                                  color: Colors.red.shade100,
+                                  height: 1,
+                                ),
+
+                                const SizedBox(height: 12),
+
+                                // Action Buttons
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    // Call Button
+                                    Expanded(
+                                      child: ElevatedButton.icon(
+                                        onPressed: () => _callHospital(hospital['phone']!),
+                                        icon: Icon(
+                                          Icons.call,
+                                          size: 18,
+                                          color: Colors.white,
+                                        ),
+                                        label: Text(
+                                          'Call',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.red.shade700,
+                                          padding: const EdgeInsets.symmetric(vertical: 10),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                                    const SizedBox(width: 10),
+
+                                    // Directions Button
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        onPressed: () => _openMaps(hospital['mapsLink']!),
+                                        icon: Icon(
+                                          Icons.directions,
+                                          size: 18,
+                                          color: Colors.red.shade700,
+                                        ),
+                                        label: Text(
+                                          'Directions',
+                                          style: TextStyle(
+                                            color: Colors.red.shade700,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        style: OutlinedButton.styleFrom(
+                                          side: BorderSide(color: Colors.red.shade700),
+                                          padding: const EdgeInsets.symmetric(vertical: 10),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                                    const SizedBox(width: 10),
+
+                                    // Phone Display
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 10,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red.shade50,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: Colors.red.shade100),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Text(
+                                            'Phone',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.red.shade600,
+                                            ),
+                                          ),
+                                          Text(
+                                            hospital['phone']!,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.red.shade700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
 
             // Bottom Note
@@ -578,7 +695,7 @@ class VerifiedHospitalsScreen extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      '${hospitals.length} verified hospitals in Lahore',
+                      '${filteredHospitals.length} hospitals found (${allHospitals.length} total)',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.red.shade700,
