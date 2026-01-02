@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:esperflow/provider/register_provider.dart';
 import 'package:esperflow/widgets/my_custom_buttom.dart';
@@ -83,108 +85,86 @@ class _AdditionalInformationScreenState
     );
   }
 
-  // Simple image validation function
-  Future<bool> _validateIDCardImage(File imageFile) async {
-    try {
-      setState(() {
-        _isProcessingImage = true;
-        _imageValidationError = null;
-      });
+Future<bool> _validateIDCardImage(File imageFile) async {
+  try {
+    setState(() {
+      _isProcessingImage = true;
+      _imageValidationError = null;
+    });
 
-      // Decode image
-      final bytes = await imageFile.readAsBytes();
-      final image = img.decodeImage(bytes);
-
-      if (image == null) {
-        _imageValidationError = 'Cannot read image file';
-        return false;
-      }
-
-      // 1. Check image dimensions (ID cards are usually portrait oriented)
-      final width = image.width;
-      final height = image.height;
-      final aspectRatio = width / height;
-
-      // ID cards typically have aspect ratio around 0.6 to 0.7 (portrait)
-      if (aspectRatio > 1) {
-        _imageValidationError = 'ID card should be in portrait orientation';
-        return false;
-      }
-
-      // 2. Check if image is too small
-      if (width < 600 || height < 800) {
-        _imageValidationError =
-            'Image resolution is too low. Please upload a clearer image';
-        return false;
-      }
-
-      // 3. Simple color analysis for ID card background
-      // Pakistan ID cards often have white/light background
-      final samplePoints = [
-        image.getPixel(width ~/ 4, height ~/ 4),
-        image.getPixel(3 * width ~/ 4, height ~/ 4),
-        image.getPixel(width ~/ 4, 3 * height ~/ 4),
-        image.getPixel(3 * width ~/ 4, 3 * height ~/ 4),
-      ];
-
-      int lightPixels = 0;
-      for (var pixel in samplePoints) {
-        final luminance = (0.299 * pixel.r + 0.587 * pixel.g + 0.114 * pixel.b);
-        if (luminance > 150) {
-          // Bright pixel
-          lightPixels++;
-        }
-      }
-
-      // At least 3 out of 4 sample points should be light for an ID card
-      if (lightPixels < 3) {
-        _imageValidationError =
-            'Image does not appear to be an ID card (dark background)';
-        return false;
-      }
-
-      // 4. Check for text presence by looking for high contrast edges
-      // Simple edge detection on horizontal center line
-      int edgeCount = 0;
-      final midY = height ~/ 2;
-      var previousPixel = image.getPixel(0, midY);
-
-      for (int x = 1; x < width; x++) {
-        final currentPixel = image.getPixel(x, midY);
-
-        final prevLuminance =
-            (0.299 * previousPixel.r +
-            0.587 * previousPixel.g +
-            0.114 * previousPixel.b);
-        final currLuminance =
-            (0.299 * currentPixel.r +
-            0.587 * currentPixel.g +
-            0.114 * currentPixel.b);
-
-        if ((currLuminance - prevLuminance).abs() > 50) {
-          edgeCount++;
-        }
-
-        previousPixel = currentPixel;
-      }
-
-      // ID cards should have text/edges
-      if (edgeCount < 10) {
-        _imageValidationError = 'Image appears blank or lacks text content';
-        return false;
-      }
-
-      return true;
-    } catch (e) {
-      _imageValidationError = 'Error analyzing image: ${e.toString()}';
+    // Check file size (not too small, not too large)
+    final fileSize = await imageFile.length();
+    if (fileSize < 10240) { // 10KB minimum
+      _imageValidationError = 'Image file is too small';
       return false;
-    } finally {
-      setState(() {
-        _isProcessingImage = false;
-      });
     }
-  }
+    if (fileSize > 10485760) { // 10MB maximum
+      _imageValidationError = 'Image file is too large (max 10MB)';
+      return false;
+    }
 
+    // Decode image
+    final bytes = await imageFile.readAsBytes();
+    final image = img.decodeImage(bytes);
+
+    if (image == null) {
+      _imageValidationError = 'Cannot read image file';
+      return false;
+    }
+
+    // Basic dimension checks (more lenient)
+    final width = image.width;
+    final height = image.height;
+    
+    if (width < 300 || height < 300) {
+      _imageValidationError = 'Image resolution is too low. Please upload a clearer image';
+      return false;
+    }
+
+    // Allow both portrait and landscape orientations
+    // Many ID cards can be photographed in either orientation
+    
+    // Check if image contains text (simpler method)
+    // Sample random points across the image and check for color variations
+    final random = Random();
+    int variations = 0;
+    final int sampleCount = 20;
+    
+    for (int i = 0; i < sampleCount; i++) {
+      final x1 = random.nextInt(width);
+      final y1 = random.nextInt(height);
+      final x2 = random.nextInt(width);
+      final y2 = random.nextInt(height);
+      
+      final pixel1 = image.getPixel(x1, y1);
+      final pixel2 = image.getPixel(x2, y2);
+      
+      // Simple color difference calculation
+      final diff = (pixel1.r - pixel2.r).abs() +
+                   (pixel1.g - pixel2.g).abs() +
+                   (pixel1.b - pixel2.b).abs();
+      
+      if (diff > 100) { // Significant color difference
+        variations++;
+      }
+    }
+    
+    // If there are enough color variations, it's likely not a blank image
+    if (variations < sampleCount / 4) {
+      _imageValidationError = 'Image appears to be blank or lacks detail';
+      return false;
+    }
+
+    return true;
+  } catch (e) {
+    _imageValidationError = 'Error validating image. Please try another image or check file format';
+    return false;
+  } finally {
+    setState(() {
+      _isProcessingImage = false;
+    });
+  }
+}
   Future<void> pickAndPreprocessImage() async {
     try {
       final image = await ImagePicker().pickImage(
@@ -331,10 +311,9 @@ class _AdditionalInformationScreenState
         throw Exception('User registration failed');
       }
     } catch (e) {
-      debugPrint('Registration error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Registration failed: ${e.toString()}'),
+          content: Text('Registration failed'),
           backgroundColor: Colors.red,
         ),
       );
@@ -760,7 +739,7 @@ class _AdditionalInformationScreenState
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text('Error: ${e.toString()}'),
+                                      content: Text('This email is already registered'),
                                       backgroundColor: Colors.red,
                                     ),
                                   );

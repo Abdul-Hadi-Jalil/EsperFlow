@@ -19,7 +19,7 @@ class MenuItemCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.only(left: 15, top: 15, bottom: 15, right: 25),
+        padding: EdgeInsets.only(left: 12, top: 15, bottom: 15, right: 22),
         decoration: BoxDecoration(
           border: Border.all(width: 1, color: Colors.grey.shade400),
           borderRadius: BorderRadius.circular(7),
@@ -32,7 +32,7 @@ class MenuItemCard extends StatelessWidget {
               child: Text(
                 text,
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
                 ),
