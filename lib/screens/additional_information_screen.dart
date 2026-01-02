@@ -50,12 +50,6 @@ class _AdditionalInformationScreenState
       return 'CNIC must contain only numbers';
     }
 
-    // Format validation for Pakistan CNIC (first 5 digits, dash, 7 digits, dash, 1 digit)
-    if (!RegExp(r'^[0-9]{5}-[0-9]{7}-[0-9]{1}$').hasMatch(value) &&
-        !RegExp(r'^[0-9]{13}$').hasMatch(value)) {
-      return 'Invalid CNIC format (e.g., 12345-1234567-1)';
-    }
-
     // Last digit validation (should be 0-9)
     int lastDigit = int.parse(cleanCNIC[cleanCNIC.length - 1]);
     if (lastDigit < 0 || lastDigit > 9) {
