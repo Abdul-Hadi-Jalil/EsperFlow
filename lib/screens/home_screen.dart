@@ -76,9 +76,10 @@ class _HomeScreenState extends State<HomeScreen> {
   onTap: () => Navigator.pushNamed(context, '/verifiedHospitalsScreen'),
 ),
                   MenuItemCard(
-                    iconData: Icons.corporate_fare_outlined,
-                    text: 'Blood Banks',
-                  ),
+  iconData: Icons.corporate_fare_outlined,
+  text: 'Blood Banks',
+  onTap: () => Navigator.pushNamed(context, '/bloodBanksScreen'),
+),
                   MenuItemCard(
                     iconData: Icons.history,
                     text: 'Donation History',
