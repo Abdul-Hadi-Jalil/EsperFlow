@@ -1,8 +1,10 @@
 import 'package:esperflow/app.dart';
 import 'package:esperflow/firebase_options.dart';
 import 'package:esperflow/provider/register_provider.dart';
+import 'package:esperflow/screens/about_us_screen.dart';
 import 'package:esperflow/screens/additional_information_screen.dart';
 import 'package:esperflow/screens/blood_request_screen.dart';
+import 'package:esperflow/screens/emergency_contact_screen.dart';
 import 'package:esperflow/screens/faq_screen.dart';
 import 'package:esperflow/screens/home_screen.dart';
 import 'package:esperflow/screens/login_screen.dart';
@@ -33,15 +35,16 @@ class EsperFlow extends StatelessWidget {
         theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.red)),
         home: App(),
         routes: {
-          '/homeScreen': (context) => HomeScreen(),
-          '/loginScreen': (context) => LoginScreen(),
-          '/registerScreen': (context) => RegisterScreen(),
-          '/additionalInformationScreen': (context) =>
-              AdditionalInformationScreen(),
-          '/bloodRequestScreen': (context) => BloodRequestScreen(),
-          '/faqScreen': (context) => FaqScreen(),
-          '/profileScreen': (context) => ProfileScreen(),
-        },
+  '/homeScreen': (context) => HomeScreen(),
+  '/loginScreen': (context) => LoginScreen(),
+  '/registerScreen': (context) => RegisterScreen(),
+  '/additionalInformationScreen': (context) => AdditionalInformationScreen(),
+  '/bloodRequestScreen': (context) => BloodRequestScreen(),
+  '/faqScreen': (context) => FaqScreen(),
+  '/profileScreen': (context) => ProfileScreen(),
+  '/emergencyContactScreen': (context) => EmergencyContactScreen(),
+  '/aboutUsScreen': (context) => AboutUsScreen(), 
+},
       ),
     );
   }
