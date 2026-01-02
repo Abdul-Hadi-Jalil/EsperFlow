@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:esperflow/provider/register_provider.dart';
 import 'package:esperflow/widgets/my_custom_buttom.dart';
@@ -352,7 +351,6 @@ Future<bool> _validateIDCardImage(File imageFile) async {
         "Last Blood Donation": lastBloodDonation,
         "CNIC Number": formattedCNIC,
         "Health Issue": healthIssue,
-        "CNIC Verified": true,
         "Registration Date": FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 

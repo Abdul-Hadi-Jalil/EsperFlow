@@ -9,35 +9,21 @@ class AboutUsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Owners information list (you can fill this later)
+    // Owners information list
     final List<Map<String, String>> owners = [
       {
-        'name': '[Owner 1 Name]',
-        'position': '[Position/Role]',
-        'phone': '[Phone Number]',
-        'email': '[email@example.com]',
-        'description': '[Brief description about this owner]',
+        'name': 'Awais Tahir',
+        'position': 'CEO',
+        'phone': '03189005624',
+        'email': 'L1f21bsds0012@ucp.edu.pk',
+        'description': 'Awais is the visionary behind EsperFlow, driving the strategic direction and overall success of our mission to revolutionize blood donation through technology.',
       },
       {
-        'name': '[Owner 2 Name]',
-        'position': '[Position/Role]',
-        'phone': '[Phone Number]',
-        'email': '[email@example.com]',
-        'description': '[Brief description about this owner]',
-      },
-      {
-        'name': '[Owner 3 Name]',
-        'position': '[Position/Role]',
-        'phone': '[Phone Number]',
-        'email': '[email@example.com]',
-        'description': '[Brief description about this owner]',
-      },
-      {
-        'name': '[Owner 4 Name]',
-        'position': '[Position/Role]',
-        'phone': '[Phone Number]',
-        'email': '[email@example.com]',
-        'description': '[Brief description about this owner]',
+        'name': 'Umar Tariq',
+        'position': 'Manager',
+        'phone': '03104878731',
+        'email': 'l1f21bsds0055@ucp.edu.pk',
+        'description': 'Umar oversees daily operations and ensures seamless coordination between donors, recipients, and healthcare partners to maximize our impact.',
       },
     ];
 
@@ -193,62 +179,13 @@ class AboutUsScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 15),
-                    Text(
-                      '[Add your mission statement here. Describe what EsperFlow aims to achieve in the blood donation ecosystem. Explain how your platform connects donors with recipients and saves lives.]',
-                      style: const TextStyle(
+                    const Text(
+                      'At EsperFlow, we are dedicated to creating a centralized platform that bridges the gap between blood donors and those in need. Our mission is to revolutionize the blood donation ecosystem by providing a reliable, efficient, and accessible system that connects willing donors with recipients during critical times. We believe that every life is precious, and by leveraging technology, we aim to eliminate delays in finding compatible blood types, reduce dependency on fragmented systems, and create a community-driven network where help is just a tap away. Together, we are building a future where no one has to suffer due to the unavailability of blood.',
+                      style: TextStyle(
                         fontSize: 16,
                         color: Colors.black87,
                       ),
                       textAlign: TextAlign.justify,
-                    ),
-                  ],
-                ),
-              ),
-
-              // App Features
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Key Features',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.red.shade800,
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 15,
-                      crossAxisSpacing: 15,
-                      childAspectRatio: 1.2,
-                      children: [
-                        _buildFeatureCard(
-                          icon: Icons.bloodtype_outlined,
-                          title: 'Blood Requests',
-                          description: 'Post and find blood donation requests',
-                        ),
-                        _buildFeatureCard(
-                          icon: Icons.people_outlined,
-                          title: 'Donor Network',
-                          description: 'Connect with verified blood donors',
-                        ),
-                        _buildFeatureCard(
-                          icon: Icons.local_hospital_outlined,
-                          title: 'Hospital Links',
-                          description: 'Access verified hospital networks',
-                        ),
-                        _buildFeatureCard(
-                          icon: Icons.history_outlined,
-                          title: 'Donation History',
-                          description: 'Track your donation journey',
-                        ),
-                      ],
                     ),
                   ],
                 ),
@@ -463,223 +400,11 @@ class AboutUsScreen extends StatelessWidget {
                 ),
               ),
 
-              // App Statistics
-              Container(
-                margin: const EdgeInsets.all(20),
-                padding: const EdgeInsets.all(25),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.red.shade600,
-                      Colors.red.shade800,
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    const Text(
-                      'Our Impact',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildStatCard(
-                          value: '[XXX]',
-                          label: 'Lives Saved',
-                          icon: Icons.favorite_outlined,
-                        ),
-                        _buildStatCard(
-                          value: '[XXX]',
-                          label: 'Donors Registered',
-                          icon: Icons.people_outline,
-                        ),
-                        _buildStatCard(
-                          value: '[XXX]',
-                          label: 'Successful Donations',
-                          icon: Icons.bloodtype_outlined,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              // Contact Us Section
-              Container(
-                margin: const EdgeInsets.all(20),
-                padding: const EdgeInsets.all(25),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.red.shade100,
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                  border: Border.all(color: Colors.red.shade100),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.contact_support_outlined,
-                      color: Colors.red.shade700,
-                      size: 40,
-                    ),
-                    const SizedBox(height: 15),
-                    const Text(
-                      'Have Questions?',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Reach out to us for any inquiries, suggestions, or partnerships.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        // You can add navigation to contact form or email
-                        launchEmail('[support@esperflow.com]');
-                      },
-                      icon: const Icon(Icons.email),
-                      label: const Text('Send Us an Email'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red.shade700,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 15,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 30),
+             
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildFeatureCard({
-    required IconData icon,
-    required String title,
-    required String description,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade200,
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-        border: Border.all(color: Colors.red.shade50),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(15),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                icon,
-                color: Colors.red.shade700,
-                size: 30,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.red.shade800,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              description,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey.shade700,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatCard({
-    required String value,
-    required String label,
-    required IconData icon,
-  }) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: Icon(
-            icon,
-            color: Colors.white,
-            size: 30,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.white.withOpacity(0.9),
-          ),
-        ),
-      ],
     );
   }
 }

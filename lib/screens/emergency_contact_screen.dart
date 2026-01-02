@@ -27,8 +27,8 @@ class _EmergencyContactScreenState extends State<EmergencyContactScreen> {
       'isCritical': true,
     },
     {
-      'name': 'Chhipa Ambulance',
-      'number': '1020',
+      'name': 'Police Help line',
+      'number': '15',
       'description': 'Emergency Ambulance & Blood Bank',
       'icon': Icons.emergency_outlined,
       'isCritical': true,
