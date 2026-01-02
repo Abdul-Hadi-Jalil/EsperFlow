@@ -5,6 +5,7 @@ import 'package:esperflow/screens/about_us_screen.dart';
 import 'package:esperflow/screens/additional_information_screen.dart';
 import 'package:esperflow/screens/blood_bank_screen.dart';
 import 'package:esperflow/screens/blood_request_screen.dart';
+import 'package:esperflow/screens/donation_history_screen.dart';
 import 'package:esperflow/screens/emergency_contact_screen.dart';
 import 'package:esperflow/screens/faq_screen.dart';
 import 'package:esperflow/screens/home_screen.dart';
@@ -48,6 +49,7 @@ class EsperFlow extends StatelessWidget {
   '/aboutUsScreen': (context) => AboutUsScreen(),
   '/verifiedHospitalsScreen': (context) => VerifiedHospitalsScreen(),
   '/bloodBanksScreen': (context) => BloodBanksScreen(),
+  '/donationHistoryScreen': (context) => DonationHistoryScreen(),
 },
       ),
     );

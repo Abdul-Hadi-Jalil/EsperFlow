@@ -83,7 +83,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   MenuItemCard(
                     iconData: Icons.history,
                     text: 'Donation History',
-                  ),
+                    onTap: () => Navigator.pushNamed(context, '/donationHistoryScreen'),
+),
+                  
                   MenuItemCard(
                     iconData: Icons.question_answer_outlined,
                     text: 'FAQs',
