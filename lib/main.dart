@@ -10,6 +10,7 @@ import 'package:esperflow/screens/home_screen.dart';
 import 'package:esperflow/screens/login_screen.dart';
 import 'package:esperflow/screens/profile_screen.dart';
 import 'package:esperflow/screens/register_screen.dart';
+import 'package:esperflow/screens/verified_hospital_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -44,6 +45,7 @@ class EsperFlow extends StatelessWidget {
   '/profileScreen': (context) => ProfileScreen(),
   '/emergencyContactScreen': (context) => EmergencyContactScreen(),
   '/aboutUsScreen': (context) => AboutUsScreen(), 
+  '/verifiedHospitalsScreen': (context) => VerifiedHospitalsScreen(),
 },
       ),
     );

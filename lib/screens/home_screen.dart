@@ -69,14 +69,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () =>
                         Navigator.pushNamed(context, '/bloodRequestScreen'),
                   ),
+                
                   MenuItemCard(
-                    iconData: Icons.heart_broken_outlined,
-                    text: 'Organ Donor',
-                  ),
-                  MenuItemCard(
-                    iconData: Icons.medical_services_rounded,
-                    text: 'Verified Hospitals',
-                  ),
+  iconData: Icons.medical_services_rounded,
+  text: 'Verified Hospitals',
+  onTap: () => Navigator.pushNamed(context, '/verifiedHospitalsScreen'),
+),
                   MenuItemCard(
                     iconData: Icons.corporate_fare_outlined,
                     text: 'Blood Banks',
@@ -91,10 +89,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () => Navigator.pushNamed(context, '/faqScreen'),
                   ),
                   MenuItemCard(
-                    iconData: Icons.phone_outlined,
-                    text: 'Emergency Contact',
-                  ),
-                  MenuItemCard(iconData: Icons.info_outline, text: 'About Us'),
+  iconData: Icons.phone_outlined,
+  text: 'Emergency Contact',
+  onTap: () => Navigator.pushNamed(context, '/emergencyContactScreen'), // Add this line
+),
+                    MenuItemCard(
+  iconData: Icons.info_outline,
+  text: 'About Us',
+  onTap: () => Navigator.pushNamed(context, '/aboutUsScreen'), // Add this line
+),
                 ],
               ),
 
