@@ -36,50 +36,317 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
 
   bool _isSubmitting = false;
 
-  Future<void> saveBloodRequestData() async {
-    setState(() {
-      _isSubmitting = true;
+  // Note: Using real Firebase data now instead of dummy data
+
+Future<void> saveBloodRequestData() async {
+  setState(() {
+    _isSubmitting = true;
+  });
+
+  try {
+    // Save to Firestore
+    await FirebaseFirestore.instance.collection('Blood Requests').add({
+      "fullName": _fullNameController.text,
+      "phoneNumber": _phoneNumberController.text,
+      "bloodGroup": selectedBloodGroup,
+      "requiredQuantity": selectedQuantity,
+      "location": _locationController.text,
+      "hospitalName": _hospitalNameController.text,
+      "additionalNotes": _additionalController.text,
+      "timestamp": FieldValue.serverTimestamp(),
+      "status": "Pending",
     });
 
-    try {
-      // Save to Firestore
-      await FirebaseFirestore.instance.collection('BloodRequests').add({
-        "fullName": _fullNameController.text,
-        "phoneNumber": _phoneNumberController.text,
-        "bloodGroup": selectedBloodGroup,
-        "requiredQuantity": selectedQuantity,
-        "location": _locationController.text,
-        "hospitalName": _hospitalNameController.text,
-        "additionalNotes": _additionalController.text,
-        "timestamp": FieldValue.serverTimestamp(),
-        "status": "Pending",
-      });
+    // Find matching donors from Firebase
+    List<Map<String, dynamic>> matchingDonors = await findMatchingDonors();
+    
+    // Show success message
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Blood request submitted successfully!'),
+        backgroundColor: Colors.green,
+      ),
+    );
 
-      // Clear form after successful submission
-      _clearForm();
-      
-      // Show simple success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Blood request submitted successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-    } catch (e) {
-      print('Error: $e');
-      // Show simple error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to submit request. Please try again.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      setState(() {
-        _isSubmitting = false;
-      });
+    // Show matching donors
+    if (matchingDonors.isNotEmpty) {
+      _showAvailableDonors(matchingDonors);
+    } else {
+      _showNoDonorsDialog();
     }
+
+  } catch (e) {
+    print('Error: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Failed to submit request. Please try again.'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  } finally {
+    // Only clear the form after everything is done
+    _clearForm();
+    setState(() {
+      _isSubmitting = false;
+    });
+  }
+}
+  Future<List<Map<String, dynamic>>> findMatchingDonors() async {
+    try {
+      // Query Firebase for users with matching blood group
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .where('Blood Group', isEqualTo: selectedBloodGroup)
+          .get();
+
+      List<Map<String, dynamic>> matchingDonors = [];
+      DateTime threeMonthsAgo = DateTime.now().subtract(const Duration(days: 90));
+
+      // Filter donors based on last donation date
+      for (var doc in snapshot.docs) {
+        var data = doc.data() as Map<String, dynamic>;
+        
+        // Check if user has donated before
+        if (data["Last Blood Donation"] != null) {
+          // Convert Firestore Timestamp to DateTime
+          DateTime lastDonation = (data["Last Blood Donation"] as Timestamp).toDate();
+          
+          // Only include if last donation was more than 3 months ago
+          if (lastDonation.isBefore(threeMonthsAgo)) {
+            matchingDonors.add(data);
+          }
+        } else {
+          // Never donated before, eligible to donate
+          matchingDonors.add(data);
+        }
+      }
+
+      return matchingDonors;
+    } catch (e) {
+      print('Error finding donors: $e');
+      return [];
+    }
+  }
+
+  void _showAvailableDonors(List<Map<String, dynamic>> donors) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        child: Container(
+          constraints: const BoxConstraints(maxHeight: 600),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade700,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(15),
+                    topRight: Radius.circular(15),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.people, color: Colors.white, size: 28),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Available Donors',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '${donors.length} donor${donors.length > 1 ? 's' : ''} found with $selectedBloodGroup',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Donors list
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.all(15),
+                  itemCount: donors.length,
+                  itemBuilder: (context, index) {
+                    final donor = donors[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(15),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  backgroundColor: Colors.red.shade100,
+                                  child: Text(
+                                    donor["Full Name"][0],
+                                    style: TextStyle(
+                                      color: Colors.red.shade700,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        donor["Full Name"],
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.red.shade700,
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          donor["Blood Group"],
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            _buildInfoRow(Icons.phone, donor["Phone Number"]),
+                            const SizedBox(height: 6),
+                            _buildInfoRow(Icons.location_on, donor["Current Address"]),
+                            const SizedBox(height: 6),
+                            _buildInfoRow(
+                              Icons.calendar_today,
+                              'Last Donation: ${_formatLastDonation(donor["Last Blood Donation"])}',
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              // Close button
+              Padding(
+                padding: const EdgeInsets.all(15),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade700,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      'Close',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatLastDonation(dynamic lastDonation) {
+    if (lastDonation == null) return "Never";
+    
+    try {
+      DateTime date = (lastDonation as Timestamp).toDate();
+      return "${date.day}/${date.month}/${date.year}";
+    } catch (e) {
+      return "N/A";
+    }
+  }
+
+  Widget _buildInfoRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: Colors.grey[600]),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.grey[700],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showNoDonorsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: Row(
+          children: [
+            Icon(Icons.info_outline, color: Colors.orange.shade700, size: 28),
+            const SizedBox(width: 10),
+            const Text('No Donors Available'),
+          ],
+        ),
+        content: Text(
+          'Currently, there are no available donors with $selectedBloodGroup blood group. '
+          'Your request has been submitted and donors will be notified.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _clearForm() {
