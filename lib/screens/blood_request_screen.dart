@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:esperflow/screens/blood_request_list_screen.dart';
 import 'package:esperflow/widgets/my_custom_buttom.dart';
 import 'package:esperflow/widgets/my_text_field.dart';
 import 'package:flutter/material.dart';
@@ -15,15 +16,14 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
-  final TextEditingController _cnicController = TextEditingController();
+  final TextEditingController _hospitalNameController = TextEditingController();
   final TextEditingController _additionalController = TextEditingController();
 
   String? selectedBloodGroup;
   List<String> bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
-  // list for required blood quantity
-  String? selectedQuatity;
-  List<String> bloodQuatity = [
+  String? selectedQuantity;
+  List<String> bloodQuantity = [
     '50ml',
     '100ml',
     '150ml',
@@ -34,16 +34,144 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
     '400ml',
   ];
 
+  bool _isSubmitting = false;
+
   Future<void> saveBloodRequestData() async {
-    await FirebaseFirestore.instance.collection('Blood Request').add({
-      "Full Name": _fullNameController.text,
-      "Phone Number": _phoneNumberController.text,
-      "Blood Group": selectedBloodGroup,
-      "Required Blood Quantity": selectedQuatity,
-      "Location": _locationController.text,
-      "CNIC": _cnicController.text,
-      "Additional Notes": _additionalController.text,
+    setState(() {
+      _isSubmitting = true;
     });
+
+    try {
+      // Save to Firestore
+      await FirebaseFirestore.instance.collection('BloodRequests').add({
+        "fullName": _fullNameController.text,
+        "phoneNumber": _phoneNumberController.text,
+        "bloodGroup": selectedBloodGroup,
+        "requiredQuantity": selectedQuantity,
+        "location": _locationController.text,
+        "hospitalName": _hospitalNameController.text,
+        "additionalNotes": _additionalController.text,
+        "timestamp": FieldValue.serverTimestamp(),
+        "status": "Pending",
+        "urgent": false,
+      });
+
+      // Show success message
+      _showSuccessDialog();
+
+    } catch (e) {
+      print('Error: $e');
+      _showErrorDialog();
+    } finally {
+      setState(() {
+        _isSubmitting = false;
+      });
+    }
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green),
+            SizedBox(width: 10),
+            Text('Request Submitted'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Your blood request has been submitted successfully.'),
+            const SizedBox(height: 10),
+            const Text('Other users can now see your request.'),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BloodRequestsListScreen(),
+                  ),
+                );
+              },
+              child: const Text('View All Requests'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              Navigator.pop(context); // Go back to previous screen
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showErrorDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.error, color: Colors.red),
+            SizedBox(width: 10),
+            Text('Error'),
+          ],
+        ),
+        content: const Text('Failed to submit request. Please try again.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool _validateForm() {
+    if (_fullNameController.text.isEmpty) {
+      _showValidationError('Please enter your full name');
+      return false;
+    }
+    if (_phoneNumberController.text.isEmpty) {
+      _showValidationError('Please enter your phone number');
+      return false;
+    }
+    if (selectedBloodGroup == null) {
+      _showValidationError('Please select a blood group');
+      return false;
+    }
+    if (selectedQuantity == null) {
+      _showValidationError('Please select required blood quantity');
+      return false;
+    }
+    if (_locationController.text.isEmpty) {
+      _showValidationError('Please enter location');
+      return false;
+    }
+    if (_hospitalNameController.text.isEmpty) {
+      _showValidationError('Please enter hospital name or CNIC');
+      return false;
+    }
+    return true;
+  }
+
+  void _showValidationError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
   @override
@@ -51,7 +179,7 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
     _fullNameController.dispose();
     _locationController.dispose();
     _phoneNumberController.dispose();
-    _cnicController.dispose();
+    _hospitalNameController.dispose();
     _additionalController.dispose();
     super.dispose();
   }
@@ -60,41 +188,90 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Blood Request',
+        title: const Text(
+          'Request Blood',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BloodRequestsListScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.list),
+            tooltip: 'View Requests',
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
-            spacing: 24,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // info card
+              Container(
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.info, color: Colors.red, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'Important',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Your request will be visible to all users in the app. Please ensure all information is accurate.',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+
               // full name field
               MyTextField(
                 controller: _fullNameController,
                 hintText: "Full Name",
+                
               ),
+              const SizedBox(height: 15),
 
               // phone number field
               MyTextField(
                 controller: _phoneNumberController,
                 hintText: 'Phone Number',
+                keyboardType: TextInputType.phone,
+               
               ),
+              const SizedBox(height: 15),
 
               // drop down menu for blood group selection
               Container(
-                padding: EdgeInsets.only(
-                  left: 15,
-                  right: 15,
-                  top: 5,
-                  bottom: 5,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                 decoration: BoxDecoration(
                   color: Colors.red.shade50,
                   borderRadius: BorderRadius.circular(9),
+                  border: Border.all(color: Colors.red.shade200),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
@@ -104,7 +281,16 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
                       style: TextStyle(color: Colors.grey[600]),
                     ),
                     items: bloodGroups.map((group) {
-                      return DropdownMenuItem(value: group, child: Text(group));
+                      return DropdownMenuItem(
+                        value: group,
+                        child: Row(
+                          children: [
+                            const Icon(Icons.bloodtype, size: 20),
+                            const SizedBox(width: 10),
+                            Text(group),
+                          ],
+                        ),
+                      );
                     }).toList(),
                     onChanged: (value) {
                       setState(() {
@@ -113,78 +299,98 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
                     },
                     isExpanded: true,
                     borderRadius: BorderRadius.circular(9),
+                    icon: const Icon(Icons.arrow_drop_down),
                   ),
                 ),
               ),
+              const SizedBox(height: 15),
 
               // drop down menu for required blood quantity
               Container(
-                padding: EdgeInsets.only(
-                  left: 15,
-                  right: 15,
-                  top: 5,
-                  bottom: 5,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                 decoration: BoxDecoration(
                   color: Colors.red.shade50,
                   borderRadius: BorderRadius.circular(9),
+                  border: Border.all(color: Colors.red.shade200),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
-                    value: selectedQuatity,
+                    value: selectedQuantity,
                     hint: Text(
-                      "Required Blood Quatity",
+                      "Required Blood Quantity",
                       style: TextStyle(color: Colors.grey[600]),
                     ),
-                    items: bloodQuatity.map((group) {
-                      return DropdownMenuItem(value: group, child: Text(group));
+                    items: bloodQuantity.map((quantity) {
+                      return DropdownMenuItem(
+                        value: quantity,
+                        child: Row(
+                          children: [
+                            const Icon(Icons.bloodtype, size: 20),
+                            const SizedBox(width: 10),
+                            Text(quantity),
+                          ],
+                        ),
+                      );
                     }).toList(),
                     onChanged: (value) {
                       setState(() {
-                        selectedQuatity = value!;
+                        selectedQuantity = value!;
                       });
                     },
                     isExpanded: true,
                     borderRadius: BorderRadius.circular(9),
+                    icon: const Icon(Icons.arrow_drop_down),
                   ),
                 ),
               ),
 
-              // text for donor
-              Transform.translate(
-                offset: Offset(-35, -10),
+              // note for donor
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0, left: 10),
                 child: Text(
-                  'Each donor can safely donate upto 400ml',
-                  style: TextStyle(color: Colors.red),
+                  'Each donor can safely donate up to 400ml',
+                  style: TextStyle(
+                    color: Colors.red.shade700,
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
               ),
+              const SizedBox(height: 15),
 
               // location field
               MyTextField(
-                hintText: "Location",
+                hintText: "Location (City/Area)",
                 controller: _locationController,
+
               ),
+              const SizedBox(height: 15),
 
               // hospital or cnic field
               MyTextField(
-                hintText: "Hospital or CNIC",
-                controller: _cnicController,
+                hintText: "Hospital Name",
+                controller: _hospitalNameController,
+
               ),
+              const SizedBox(height: 15),
 
               // additional notes
               MyTextField(
                 hintText: "Additional Notes (Optional)",
                 controller: _additionalController,
+
               ),
+              const SizedBox(height: 25),
 
               // submit button
               MyCustomButtom(
                 onTap: () {
-                  saveBloodRequestData();
-                  Navigator.pop(context);
+                  if (_validateForm()) {
+                    saveBloodRequestData();
+                  }
                 },
-                backgroundColor: Color(0xFFE31A1A),
-                text: "Submit Request",
+                backgroundColor: const Color(0xFFE31A1A),
+                text: _isSubmitting ? "Submitting..." : "Submit Request",
                 textColor: Colors.white,
               ),
             ],
