@@ -102,8 +102,8 @@ class _HomeScreenState extends State<HomeScreen> {
   onTap: () => Navigator.pushNamed(context, '/aboutUsScreen'), // Add this line
 ),
 MenuItemCard(
-  iconData: Icons.chat_bubble,
-  text: 'About Us',
+  iconData: Icons.chat_bubble_outline,
+  text: 'Chat Assistant',
   onTap: () => Navigator.pushNamed(context, '/chatBotScreen'), // Add this line
 ),
                 ],

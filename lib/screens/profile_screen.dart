@@ -17,12 +17,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // User data variables
   String userName = 'Loading...';
   String userBloodType = 'Loading...';
-  String lastDonationDate = 'Loading...';
+  String lastDonationDate = 'No donations yet';
   String userEmail = '';
   String userPhone = '';
   String userAddress = '';
   String userCNIC = '';
-  bool healthIssue = false;
+  bool? healthIssue; // Changed to nullable bool to handle both bool and null
   
   // Donation history
   List<Map<String, dynamic>> donationHistory = [];
@@ -42,6 +42,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadUserData();
+  }
+
+  String _formatDateForDisplay(String? dateString) {
+    if (dateString == null || dateString.isEmpty || dateString == 'No donations yet') {
+      return 'No donations yet';
+    }
+    
+    try {
+      // Try parsing ISO 8601 format (from date picker)
+      final date = DateTime.parse(dateString);
+      return '${date.day}/${date.month}/${date.year}';
+    } catch (e) {
+      // If it's already formatted or in a different format, return as is
+      return dateString;
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -77,15 +92,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
           userPhone = data['Phone Number'] ?? data['phoneNumber'] ?? 'Not provided';
           userAddress = data['Current Address'] ?? data['address'] ?? 'Not provided';
           userCNIC = data['CNIC Number'] ?? 'Not provided';
-          healthIssue = data['Health Issue'] ?? 'None';
           
-          // Last blood donation - this is a single field, not an array
-          lastDonationDate = data['Last Blood Donation'] ?? 'No donations yet';
+          // FIX: Handle Health Issue which can be bool, string, or null
+          var healthIssueData = data['Health Issue'];
+          if (healthIssueData is bool) {
+            healthIssue = healthIssueData;
+          } else if (healthIssueData is String) {
+            // If stored as string, try to parse it
+            healthIssue = healthIssueData.toLowerCase() == 'true' || 
+                         healthIssueData.toLowerCase() == 'yes';
+          } else {
+            healthIssue = null;
+          }
           
-          // If you have donation history as a separate field/collection
-          // For now, we'll use the single 'Last Blood Donation' field
+          // FIX: Last blood donation - format for display
+          var lastDonation = data['Last Blood Donation'];
+          print('Last Blood Donation raw value: $lastDonation (type: ${lastDonation.runtimeType})');
+          
+          if (lastDonation == null || lastDonation.toString().isEmpty) {
+            lastDonationDate = 'No donations yet';
+          } else {
+            lastDonationDate = _formatDateForDisplay(lastDonation.toString());
+          }
+          
+          print('Formatted last donation date: $lastDonationDate');
+          
+          // Build donation history
           donationHistory = [];
-          if (lastDonationDate != 'No donations yet' && lastDonationDate != 'Loading...') {
+          if (lastDonationDate != 'No donations yet' && lastDonationDate.isNotEmpty) {
             donationHistory.add({
               'type': 'Blood Donation',
               'date': lastDonationDate,
@@ -102,8 +136,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           isLoading = false;
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('Error loading user data: $e');
+      print('Stack trace: $stackTrace');
       setState(() {
         errorMessage = 'Error loading profile: $e';
         isLoading = false;
@@ -131,20 +166,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
           isEditing = false;
         });
         
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Profile updated successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Profile updated successfully!'),
-            backgroundColor: Colors.green,
+            content: Text('Error updating profile: $e'),
+            backgroundColor: Colors.red,
           ),
         );
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error updating profile: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
@@ -166,17 +205,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _bloodTypeController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text('Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         actions: isEditing
             ? [
                 IconButton(
                   onPressed: _cancelEditing,
-                  icon: Icon(Icons.close),
+                  icon: const Icon(Icons.close),
                 ),
               ]
             : null,
@@ -188,8 +236,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               if (errorMessage != null)
                 Container(
-                  padding: EdgeInsets.all(16),
-                  margin: EdgeInsets.only(bottom: 20),
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
                     color: Colors.red.shade50,
                     borderRadius: BorderRadius.circular(12),
@@ -197,32 +245,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: Column(
                     children: [
-                      Text(
+                      const Text(
                         'Error',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.red,
                         ),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(errorMessage!),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       ElevatedButton(
                         onPressed: _loadUserData,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
                           foregroundColor: Colors.white,
                         ),
-                        child: Text('Retry'),
+                        child: const Text('Retry'),
                       ),
                     ],
                   ),
                 ),
               
               if (isLoading)
-                Center(
+                const Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(40.0),
+                    padding: EdgeInsets.all(40.0),
                     child: Column(
                       children: [
                         CircularProgressIndicator(),
@@ -233,10 +281,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 )
               else ...[
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 
                 // profile picture
-                CircleAvatar(
+                const CircleAvatar(
                   radius: 60,
                   backgroundColor: Colors.black26,
                   child: CircleAvatar(
@@ -246,8 +294,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 
-                
-                SizedBox(height: 14),
+                const SizedBox(height: 14),
                 
                 // name of user - editable if in edit mode
                 if (isEditing)
@@ -255,7 +302,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     controller: _nameController,
                     decoration: InputDecoration(
                       labelText: 'Full Name',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       filled: true,
                       fillColor: Colors.grey[100],
                     ),
@@ -263,10 +310,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 else
                   Text(
                     userName,
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
                   ),
                 
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 
                 // email (not editable)
                 Text(
@@ -274,18 +321,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
                 
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 
                 // blood type - editable if in edit mode
                 if (isEditing)
                   Column(
                     children: [
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       TextField(
                         controller: _bloodTypeController,
                         decoration: InputDecoration(
                           labelText: 'Blood Group (e.g., O+, A-, etc.)',
-                          border: OutlineInputBorder(),
+                          border: const OutlineInputBorder(),
                           filled: true,
                           fillColor: Colors.grey[100],
                         ),
@@ -295,18 +342,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 else
                   Text(
                     'Blood Type: $userBloodType',
-                    style: TextStyle(fontSize: 16, color: Colors.red),
+                    style: const TextStyle(fontSize: 16, color: Colors.red),
                   ),
                 
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 
                 // last donation date
                 Text(
                   'Last Donation: $lastDonationDate',
-                  style: TextStyle(fontSize: 16, color: Colors.red),
+                  style: const TextStyle(fontSize: 16, color: Colors.red),
                 ),
                 
-                SizedBox(height: 18),
+                const SizedBox(height: 18),
                 
                 // edit profile button or save/cancel buttons
                 if (isEditing)
@@ -320,8 +367,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               color: Colors.grey[300],
                               borderRadius: BorderRadius.circular(99),
                             ),
-                            padding: EdgeInsets.all(14),
-                            child: Center(
+                            padding: const EdgeInsets.all(14),
+                            child: const Center(
                               child: Text(
                                 'Cancel',
                                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -330,7 +377,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: InkWell(
                           onTap: _updateUserProfile,
@@ -339,8 +386,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               color: Colors.red.shade50,
                               borderRadius: BorderRadius.circular(99),
                             ),
-                            padding: EdgeInsets.all(14),
-                            child: Center(
+                            padding: const EdgeInsets.all(14),
+                            child: const Center(
                               child: Text(
                                 'Save',
                                 style: TextStyle(fontWeight: FontWeight.bold),
@@ -359,9 +406,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         color: Colors.red.shade50,
                         borderRadius: BorderRadius.circular(99),
                       ),
-                      padding: EdgeInsets.all(14),
-                      margin: EdgeInsets.symmetric(horizontal: 0),
-                      child: Center(
+                      padding: const EdgeInsets.all(14),
+                      margin: const EdgeInsets.symmetric(horizontal: 0),
+                      child: const Center(
                         child: Text(
                           'Edit Profile',
                           style: TextStyle(fontWeight: FontWeight.bold),
@@ -370,42 +417,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 
                 // Additional editable fields when in edit mode
                 if (isEditing) ...[
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   TextField(
                     controller: _phoneController,
                     decoration: InputDecoration(
                       labelText: 'Phone Number',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       filled: true,
                       fillColor: Colors.grey[100],
                     ),
                     keyboardType: TextInputType.phone,
                   ),
                   
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   
                   TextField(
                     controller: _addressController,
                     decoration: InputDecoration(
                       labelText: 'Address',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                       filled: true,
                       fillColor: Colors.grey[100],
                     ),
                     maxLines: 2,
                   ),
                   
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                 ],
                 
                 // Additional information section
                 Container(
                   width: double.infinity,
-                  padding: EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
                     borderRadius: BorderRadius.circular(12),
@@ -414,7 +461,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'Additional Information',
                         style: TextStyle(
                           fontSize: 16,
@@ -422,19 +469,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           color: Colors.black87,
                         ),
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       
                       // Phone
                       if (userPhone.isNotEmpty && userPhone != 'Not provided' && userPhone != 'Loading...')
                         Row(
                           children: [
                             Icon(Icons.phone, size: 16, color: Colors.grey[600]),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             Expanded(child: Text(userPhone)),
                           ],
                         ),
                       
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       
                       // Address
                       if (userAddress.isNotEmpty && userAddress != 'Not provided' && userAddress != 'Loading...')
@@ -442,36 +489,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             Expanded(child: Text(userAddress)),
                           ],
                         ),
                       
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       
                       // CNIC
                       if (userCNIC.isNotEmpty && userCNIC != 'Not provided')
                         Row(
                           children: [
                             Icon(Icons.badge, size: 16, color: Colors.grey[600]),
-                            SizedBox(width: 12),
+                            const SizedBox(width: 12),
                             Expanded(child: Text(userCNIC)),
                           ],
                         ),
                       
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       
-                      
+                      // Health Issue Status
+                      if (healthIssue != null)
+                        Row(
+                          children: [
+                            Icon(
+                              healthIssue! ? Icons.warning : Icons.check_circle,
+                              size: 16,
+                              color: healthIssue! ? Colors.orange : Colors.green,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Health Issues: ${healthIssue! ? "Yes" : "No"}',
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
                 
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 
                 // donation history section
                 Column(
                   children: [
-                    Row(
+                    const Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
@@ -484,12 +547,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                     
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     
                     // history content or empty state
                     if (donationHistory.isEmpty)
                       Container(
-                        padding: EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           color: Colors.grey[50],
                           borderRadius: BorderRadius.circular(12),
@@ -497,7 +560,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: Column(
                           children: [
                             Icon(Icons.bloodtype_outlined, size: 48, color: Colors.grey[400]),
-                            SizedBox(height: 10),
+                            const SizedBox(height: 10),
                             Text(
                               'No donation history yet',
                               style: TextStyle(
@@ -505,7 +568,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 color: Colors.grey[600],
                               ),
                             ),
-                            SizedBox(height: 5),
+                            const SizedBox(height: 5),
                             Text(
                               'Start your journey by donating blood!',
                               style: TextStyle(
@@ -530,7 +593,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ],
                 ),
                 
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
                 
                 // debug button to check Firestore data
                 InkWell(
@@ -539,15 +602,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     if (user != null) {
                       final doc = await _firestore.collection('User').doc(user.uid).get();
                       print('Firestore data: ${doc.data()}');
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Document exists: ${doc.exists}\nData: ${doc.data()}'),
-                          duration: Duration(seconds: 5),
-                        ),
-                      );
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Document exists: ${doc.exists}\nData: ${doc.data()}'),
+                            duration: const Duration(seconds: 5),
+                          ),
+                        );
+                      }
                     }
                   },
-                  child: Container(
+                  child: const Padding(
                     padding: EdgeInsets.all(8),
                     child: Text(
                       'Debug: Check Firestore Data',
@@ -575,9 +640,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: Colors.red.shade50,
                       borderRadius: BorderRadius.circular(99),
                     ),
-                    padding: EdgeInsets.all(14),
-                    margin: EdgeInsets.symmetric(horizontal: 0),
-                    child: Center(
+                    padding: const EdgeInsets.all(14),
+                    margin: const EdgeInsets.symmetric(horizontal: 0),
+                    child: const Center(
                       child: Text(
                         'Sign Out',
                         style: TextStyle(fontWeight: FontWeight.bold),
@@ -600,7 +665,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Navigator.pushNamed(context, '/homeScreen');
           }
         },
-        items: [
+        items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
             label: 'Profile',
@@ -635,7 +700,7 @@ class DonationHistoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Transform.translate(
-      offset: Offset(-16, 0),
+      offset: const Offset(-16, 0),
       child: ListTile(
         leading: Container(
           width: 50,
@@ -644,13 +709,13 @@ class DonationHistoryTile extends StatelessWidget {
             color: Colors.red.shade50,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(Icons.bloodtype, size: 24),
+          child: const Icon(Icons.bloodtype, size: 24),
         ),
-        title: Text(title, style: TextStyle(fontWeight: FontWeight.w500)),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(subTitle, style: TextStyle(color: Colors.red)),
+            Text(subTitle, style: const TextStyle(color: Colors.red)),
             if (location.isNotEmpty)
               Text(location, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
           ],

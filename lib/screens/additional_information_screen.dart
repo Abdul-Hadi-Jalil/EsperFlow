@@ -84,86 +84,207 @@ class _AdditionalInformationScreenState
     );
   }
 
-Future<bool> _validateIDCardImage(File imageFile) async {
-  try {
-    setState(() {
-      _isProcessingImage = true;
-      _imageValidationError = null;
-    });
+  Future<bool> _validateIDCardImage(File imageFile) async {
+    try {
+      setState(() {
+        _isProcessingImage = true;
+        _imageValidationError = null;
+      });
 
-    // Check file size (not too small, not too large)
-    final fileSize = await imageFile.length();
-    if (fileSize < 10240) { // 10KB minimum
-      _imageValidationError = 'Image file is too small';
-      return false;
-    }
-    if (fileSize > 10485760) { // 10MB maximum
-      _imageValidationError = 'Image file is too large (max 10MB)';
-      return false;
-    }
-
-    // Decode image
-    final bytes = await imageFile.readAsBytes();
-    final image = img.decodeImage(bytes);
-
-    if (image == null) {
-      _imageValidationError = 'Cannot read image file';
-      return false;
-    }
-
-    // Basic dimension checks (more lenient)
-    final width = image.width;
-    final height = image.height;
-    
-    if (width < 300 || height < 300) {
-      _imageValidationError = 'Image resolution is too low. Please upload a clearer image';
-      return false;
-    }
-
-    // Allow both portrait and landscape orientations
-    // Many ID cards can be photographed in either orientation
-    
-    // Check if image contains text (simpler method)
-    // Sample random points across the image and check for color variations
-    final random = Random();
-    int variations = 0;
-    final int sampleCount = 20;
-    
-    for (int i = 0; i < sampleCount; i++) {
-      final x1 = random.nextInt(width);
-      final y1 = random.nextInt(height);
-      final x2 = random.nextInt(width);
-      final y2 = random.nextInt(height);
-      
-      final pixel1 = image.getPixel(x1, y1);
-      final pixel2 = image.getPixel(x2, y2);
-      
-      // Simple color difference calculation
-      final diff = (pixel1.r - pixel2.r).abs() +
-                   (pixel1.g - pixel2.g).abs() +
-                   (pixel1.b - pixel2.b).abs();
-      
-      if (diff > 100) { // Significant color difference
-        variations++;
+      // Check file size
+      final fileSize = await imageFile.length();
+      if (fileSize < 10240) {
+        // 10KB minimum
+        _imageValidationError = 'Image file is too small. Please upload a clearer photo';
+        return false;
       }
+      if (fileSize > 10485760) {
+        // 10MB maximum
+        _imageValidationError = 'Image file is too large (max 10MB)';
+        return false;
+      }
+
+      // Decode image
+      final bytes = await imageFile.readAsBytes();
+      final image = img.decodeImage(bytes);
+
+      if (image == null) {
+        _imageValidationError = 'Cannot read image file. Please try another photo';
+        return false;
+      }
+
+      // Get dimensions
+      final width = image.width;
+      final height = image.height;
+
+      // Check minimum resolution (not too strict)
+      if (width < 400 || height < 250) {
+        _imageValidationError =
+            'Image resolution is too low. Please upload a clearer photo';
+        return false;
+      }
+
+      // Check aspect ratio - ID cards are typically rectangular
+      // Pakistan CNIC is roughly 3:2 ratio (landscape) or 2:3 (portrait)
+      final aspectRatio = width / height;
+      
+      // Allow flexible aspect ratio (between 0.5 and 2.5)
+      // This covers both portrait and landscape orientations
+      if (aspectRatio < 0.5 || aspectRatio > 2.5) {
+        _imageValidationError =
+            'Image doesn\'t appear to be a card. Please ensure the full card is visible';
+        return false;
+      }
+
+      // Check if image is not too square (likely not a card)
+      if (aspectRatio > 0.9 && aspectRatio < 1.1) {
+        _imageValidationError =
+            'Image appears to be square. Please capture the rectangular ID card';
+        return false;
+      }
+
+      // Analyze image content to detect card-like features
+      final isCardLike = await _detectCardFeatures(image);
+      
+      if (!isCardLike) {
+        _imageValidationError =
+            'Image doesn\'t appear to be an ID card. Please upload a clear photo of your CNIC';
+        return false;
+      }
+
+      return true;
+    } catch (e) {
+      _imageValidationError =
+          'Error validating image: ${e.toString()}. Please try another photo';
+      return false;
+    } finally {
+      setState(() {
+        _isProcessingImage = false;
+      });
     }
-    
-    // If there are enough color variations, it's likely not a blank image
-    if (variations < sampleCount / 4) {
-      _imageValidationError = 'Image appears to be blank or lacks detail';
+  }
+
+  Future<bool> _detectCardFeatures(img.Image image) async {
+    try {
+      final width = image.width;
+      final height = image.height;
+      final random = Random();
+
+      // 1. Check for edge detection (cards have defined edges)
+      int edgeCount = 0;
+      final edgeSamples = 30;
+
+      for (int i = 0; i < edgeSamples; i++) {
+        final x = random.nextInt(width - 1);
+        final y = random.nextInt(height - 1);
+
+        final current = image.getPixel(x, y);
+        final right = image.getPixel(x + 1, y);
+        final down = image.getPixel(x, y + 1);
+
+        // Calculate edge strength
+        final edgeStrengthH = _colorDifference(current, right);
+        final edgeStrengthV = _colorDifference(current, down);
+
+        if (edgeStrengthH > 80 || edgeStrengthV > 80) {
+          edgeCount++;
+        }
+      }
+
+      // Cards should have some edges but not too many
+      if (edgeCount < 3) {
+        return false; // Too uniform, might be blank
+      }
+
+      // 2. Check color variation (cards have text, logos, colors)
+      int colorVariations = 0;
+      final colorSamples = 40;
+      
+      for (int i = 0; i < colorSamples; i++) {
+        final x1 = random.nextInt(width);
+        final y1 = random.nextInt(height);
+        final x2 = random.nextInt(width);
+        final y2 = random.nextInt(height);
+
+        final pixel1 = image.getPixel(x1, y1);
+        final pixel2 = image.getPixel(x2, y2);
+
+        final diff = _colorDifference(pixel1, pixel2);
+
+        if (diff > 60) {
+          colorVariations++;
+        }
+      }
+
+      // Cards should have reasonable color variation
+      if (colorVariations < colorSamples / 5) {
+        return false; // Too uniform
+      }
+
+      // 3. Check brightness distribution (cards aren't all dark or all bright)
+      int brightPixels = 0;
+      int darkPixels = 0;
+      final brightnessSamples = 50;
+
+      for (int i = 0; i < brightnessSamples; i++) {
+        final x = random.nextInt(width);
+        final y = random.nextInt(height);
+        final pixel = image.getPixel(x, y);
+
+        final brightness = (pixel.r + pixel.g + pixel.b) / 3;
+
+        if (brightness > 200) brightPixels++;
+        if (brightness < 50) darkPixels++;
+      }
+
+      // Reject if too many dark or bright pixels (overexposed/underexposed)
+      if (brightPixels > brightnessSamples * 0.8 ||
+          darkPixels > brightnessSamples * 0.8) {
+        return false;
+      }
+
+      // 4. Check for rectangular regions (cards have rectangular structure)
+      // Sample the center and edges to see if there's content
+      final centerX = width ~/ 2;
+      final centerY = height ~/ 2;
+      final centerRadius = min(width, height) ~/ 6;
+
+      int centerActivity = 0;
+      for (int i = 0; i < 15; i++) {
+        final x1 = centerX + random.nextInt(centerRadius) - centerRadius ~/ 2;
+        final y1 = centerY + random.nextInt(centerRadius) - centerRadius ~/ 2;
+        final x2 = centerX + random.nextInt(centerRadius) - centerRadius ~/ 2;
+        final y2 = centerY + random.nextInt(centerRadius) - centerRadius ~/ 2;
+
+        if (x1 >= 0 && x1 < width && y1 >= 0 && y1 < height &&
+            x2 >= 0 && x2 < width && y2 >= 0 && y2 < height) {
+          final pixel1 = image.getPixel(x1, y1);
+          final pixel2 = image.getPixel(x2, y2);
+
+          if (_colorDifference(pixel1, pixel2) > 50) {
+            centerActivity++;
+          }
+        }
+      }
+
+      // Cards should have activity in the center (text, photo, etc.)
+      if (centerActivity < 3) {
+        return false;
+      }
+
+      // If all checks pass, it's likely a card
+      return true;
+    } catch (e) {
+      debugPrint('Error in card detection: $e');
       return false;
     }
-
-    return true;
-  } catch (e) {
-    _imageValidationError = 'Error validating image. Please try another image or check file format';
-    return false;
-  } finally {
-    setState(() {
-      _isProcessingImage = false;
-    });
   }
-}
+
+  int _colorDifference(img.Pixel p1, img.Pixel p2) {
+    return ((p1.r - p2.r).abs() + (p1.g - p2.g).abs() + (p1.b - p2.b).abs())
+        .toInt();
+  }
+
   Future<void> pickAndPreprocessImage() async {
     try {
       final image = await ImagePicker().pickImage(
@@ -183,33 +304,39 @@ Future<bool> _validateIDCardImage(File imageFile) async {
             selectedImage = image;
             _imageValidationError = null;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('ID card image validated successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('ID card image validated successfully'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
         } else {
           setState(() {
             selectedImage = null;
           });
-          if (_imageValidationError != null) {
+          if (_imageValidationError != null && mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(_imageValidationError!),
                 backgroundColor: Colors.red,
+                duration: const Duration(seconds: 3),
               ),
             );
           }
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error picking image: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error picking image: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -230,7 +357,7 @@ Future<bool> _validateIDCardImage(File imageFile) async {
     // Validate image
     if (selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Please upload CNIC image'),
           backgroundColor: Colors.red,
         ),
@@ -241,7 +368,7 @@ Future<bool> _validateIDCardImage(File imageFile) async {
     // Validate health issue selection
     if (healthIssue == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Please select health history option'),
           backgroundColor: Colors.red,
         ),
@@ -252,7 +379,7 @@ Future<bool> _validateIDCardImage(File imageFile) async {
     // Validate checkboxes
     if (!healthCondition) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Please agree to health conditions'),
           backgroundColor: Colors.red,
         ),
@@ -262,7 +389,7 @@ Future<bool> _validateIDCardImage(File imageFile) async {
 
     if (!termConditions) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Please agree to terms and conditions'),
           backgroundColor: Colors.red,
         ),
@@ -297,9 +424,9 @@ Future<bool> _validateIDCardImage(File imageFile) async {
 
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
-            email: registerProvider.email,
-            password: registerProvider.password,
-          );
+        email: registerProvider.email,
+        password: registerProvider.password,
+      );
 
       User? user = userCredential.user;
 
@@ -310,12 +437,14 @@ Future<bool> _validateIDCardImage(File imageFile) async {
         throw Exception('User registration failed');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Registration failed'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Registration failed'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
       rethrow;
     }
   }
@@ -335,8 +464,7 @@ Future<bool> _validateIDCardImage(File imageFile) async {
       // Format CNIC before saving
       String formattedCNIC = _cnicController.text;
       if (!formattedCNIC.contains('-')) {
-        formattedCNIC =
-            '${formattedCNIC.substring(0, 5)}-'
+        formattedCNIC = '${formattedCNIC.substring(0, 5)}-'
             '${formattedCNIC.substring(5, 12)}-'
             '${formattedCNIC.substring(12)}';
       }
@@ -377,7 +505,7 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Additional information text
-                      Align(
+                      const Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
                           'Additional Information',
@@ -388,7 +516,7 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                         ),
                       ),
 
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
                       // Last blood donation field with selected date display
                       Container(
@@ -396,16 +524,16 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                           color: Colors.red.shade50,
                           borderRadius: BorderRadius.circular(9),
                         ),
-                        margin: EdgeInsets.symmetric(horizontal: 0),
+                        margin: const EdgeInsets.symmetric(horizontal: 0),
                         child: Center(
                           child: ListTile(
                             title: lastBloodDonation == null
-                                ? Text('Last Blood Donation (Optional)')
+                                ? const Text('Last Blood Donation (Optional)')
                                 : Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
+                                      const Text(
                                         'Last Blood Donation',
                                         style: TextStyle(fontSize: 12),
                                       ),
@@ -413,7 +541,7 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                                         _formatDateForDisplay(
                                           lastBloodDonation!,
                                         ),
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -430,18 +558,18 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                                 );
                                 if (selectedDate != null) {
                                   setState(() {
-                                    lastBloodDonation = selectedDate
-                                        .toIso8601String();
+                                    lastBloodDonation =
+                                        selectedDate.toIso8601String();
                                   });
                                 }
                               },
-                              icon: Icon(Icons.calendar_month_rounded),
+                              icon: const Icon(Icons.calendar_month_rounded),
                             ),
                           ),
                         ),
                       ),
 
-                      SizedBox(height: 15),
+                      const SizedBox(height: 15),
 
                       // CNIC field with validation
                       Column(
@@ -465,10 +593,10 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                           ),
                           if (_cnicError != null)
                             Padding(
-                              padding: EdgeInsets.only(left: 12, top: 4),
+                              padding: const EdgeInsets.only(left: 12, top: 4),
                               child: Text(
                                 _cnicError!,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.red,
                                   fontSize: 12,
                                 ),
@@ -477,7 +605,7 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                         ],
                       ),
 
-                      SizedBox(height: 15),
+                      const SizedBox(height: 15),
 
                       // Upload CNIC image button with validation status
                       Column(
@@ -499,11 +627,11 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                                       : Colors.red.shade100,
                                 ),
                               ),
-                              padding: EdgeInsets.all(14),
-                              margin: EdgeInsets.symmetric(horizontal: 0),
+                              padding: const EdgeInsets.all(14),
+                              margin: const EdgeInsets.symmetric(horizontal: 0),
                               child: Center(
                                 child: _isProcessingImage
-                                    ? Row(
+                                    ? const Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
@@ -531,7 +659,7 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                                                 ? Colors.green
                                                 : null,
                                           ),
-                                          SizedBox(width: 8),
+                                          const SizedBox(width: 8),
                                           Text(
                                             selectedImage != null
                                                 ? 'CNIC Image Verified'
@@ -550,10 +678,10 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                           ),
                           if (selectedImage != null)
                             Padding(
-                              padding: EdgeInsets.only(top: 8, left: 12),
+                              padding: const EdgeInsets.only(top: 8, left: 12),
                               child: Text(
                                 'Image: ${selectedImage!.name}',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 12,
                                   color: Colors.green,
                                 ),
@@ -562,10 +690,10 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                         ],
                       ),
 
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
                       // Health history section
-                      Text(
+                      const Text(
                         'Health History',
                         style: TextStyle(
                           fontSize: 18,
@@ -573,14 +701,14 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                         ),
                       ),
 
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
 
-                      Text(
+                      const Text(
                         'Have you had any diseases or health issues in the past 3 years',
                         style: TextStyle(fontSize: 14),
                       ),
 
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
 
                       // Yes/No option
                       Row(
@@ -614,7 +742,7 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                               ),
                             ),
                           ),
-                          SizedBox(width: 10),
+                          const SizedBox(width: 10),
                           OutlinedButton(
                             style: ButtonStyle(
                               backgroundColor: WidgetStateProperty.all(
@@ -647,7 +775,7 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                         ],
                       ),
 
-                      SizedBox(height: 15),
+                      const SizedBox(height: 15),
 
                       // Checkboxes for agreement
                       Row(
@@ -660,7 +788,7 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                               });
                             },
                           ),
-                          Expanded(
+                          const Expanded(
                             child: Text(
                               'I agree to the health conditions',
                               style: TextStyle(fontSize: 14),
@@ -679,7 +807,7 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                               });
                             },
                           ),
-                          Expanded(
+                          const Expanded(
                             child: Text(
                               'I agree to the terms and conditions',
                               style: TextStyle(fontSize: 14),
@@ -688,7 +816,7 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                         ],
                       ),
 
-                      SizedBox(height: 15),
+                      const SizedBox(height: 15),
                     ],
                   ),
 
@@ -710,7 +838,7 @@ Future<bool> _validateIDCardImage(File imageFile) async {
 
                           // Submit button
                           MyCustomButtom(
-                            backgroundColor: Color(0xFFE31A1A),
+                            backgroundColor: const Color(0xFFE31A1A),
                             text: "Submit",
                             textColor: Colors.white,
                             onTap: () async {
@@ -721,7 +849,7 @@ Future<bool> _validateIDCardImage(File imageFile) async {
 
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
+                                      const SnackBar(
                                         content: Text(
                                           'Registration successful!',
                                         ),
@@ -735,12 +863,15 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                                     );
                                   }
                                 } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('This email is already registered'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                            'This email is already registered'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
                                 }
                               }
                             },
@@ -748,10 +879,10 @@ Future<bool> _validateIDCardImage(File imageFile) async {
                         ],
                       ),
 
-                      SizedBox(height: 15),
+                      const SizedBox(height: 15),
 
                       // Footer text
-                      Center(
+                      const Center(
                         child: Text(
                           'Your data is secure and used only for donation purposes',
                           style: TextStyle(fontSize: 12, color: Colors.grey),
@@ -767,5 +898,11 @@ Future<bool> _validateIDCardImage(File imageFile) async {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _cnicController.dispose();
+    super.dispose();
   }
 }

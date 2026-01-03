@@ -53,15 +53,28 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
         "additionalNotes": _additionalController.text,
         "timestamp": FieldValue.serverTimestamp(),
         "status": "Pending",
-        "urgent": false,
       });
 
-      // Show success message
-      _showSuccessDialog();
+      // Clear form after successful submission
+      _clearForm();
+      
+      // Show simple success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Blood request submitted successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
 
     } catch (e) {
       print('Error: $e');
-      _showErrorDialog();
+      // Show simple error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to submit request. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
     } finally {
       setState(() {
         _isSubmitting = false;
@@ -69,72 +82,16 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
     }
   }
 
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.green),
-            SizedBox(width: 10),
-            Text('Request Submitted'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Your blood request has been submitted successfully.'),
-            const SizedBox(height: 10),
-            const Text('Other users can now see your request.'),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context); // Close dialog
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => BloodRequestsListScreen(),
-                  ),
-                );
-              },
-              child: const Text('View All Requests'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Go back to previous screen
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showErrorDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.error, color: Colors.red),
-            SizedBox(width: 10),
-            Text('Error'),
-          ],
-        ),
-        content: const Text('Failed to submit request. Please try again.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+  void _clearForm() {
+    _fullNameController.clear();
+    _phoneNumberController.clear();
+    _locationController.clear();
+    _hospitalNameController.clear();
+    _additionalController.clear();
+    setState(() {
+      selectedBloodGroup = null;
+      selectedQuantity = null;
+    });
   }
 
   bool _validateForm() {
@@ -159,7 +116,7 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
       return false;
     }
     if (_hospitalNameController.text.isEmpty) {
-      _showValidationError('Please enter hospital name or CNIC');
+      _showValidationError('Please enter hospital name');
       return false;
     }
     return true;
@@ -199,7 +156,7 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => BloodRequestsListScreen(),
+                  builder: (context) => const BloodRequestsListScreen(),
                 ),
               );
             },
@@ -252,7 +209,6 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
               MyTextField(
                 controller: _fullNameController,
                 hintText: "Full Name",
-                
               ),
               const SizedBox(height: 15),
 
@@ -261,7 +217,6 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
                 controller: _phoneNumberController,
                 hintText: 'Phone Number',
                 keyboardType: TextInputType.phone,
-               
               ),
               const SizedBox(height: 15),
 
@@ -362,7 +317,6 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
               MyTextField(
                 hintText: "Location (City/Area)",
                 controller: _locationController,
-
               ),
               const SizedBox(height: 15),
 
@@ -370,7 +324,6 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
               MyTextField(
                 hintText: "Hospital Name",
                 controller: _hospitalNameController,
-
               ),
               const SizedBox(height: 15),
 
@@ -378,7 +331,6 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
               MyTextField(
                 hintText: "Additional Notes (Optional)",
                 controller: _additionalController,
-
               ),
               const SizedBox(height: 25),
 
