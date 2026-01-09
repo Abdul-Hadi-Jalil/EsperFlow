@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -28,15 +25,9 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -49,20 +40,49 @@ class DefaultFirebaseOptions {
     }
   }
 
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyDQV2HHYdBnzyMLWzOHbhTe10YHJs4CBcw',
+    appId: '1:419345748826:web:24a74b65933a2eec9fd963',
+    messagingSenderId: '419345748826',
+    projectId: 'esperflow-638ad',
+    authDomain: 'esperflow-638ad.firebaseapp.com',
+    storageBucket: 'esperflow-638ad.firebasestorage.app',
+    measurementId: 'G-SZZZ8JSB12',
+  );
+
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDgM9dr_1oWdalGgLsnvuxisI7DzsRb0XQ',
-    appId: '1:272472365314:android:20e2a43a897ad78e9f0a1b',
-    messagingSenderId: '272472365314',
-    projectId: 'esperflow-1b828',
-    storageBucket: 'esperflow-1b828.firebasestorage.app',
+    apiKey: 'AIzaSyARZ7SJF7wKg5DsWGUnrNbESc4v4NWv1m8',
+    appId: '1:419345748826:android:850709a45a43e8969fd963',
+    messagingSenderId: '419345748826',
+    projectId: 'esperflow-638ad',
+    storageBucket: 'esperflow-638ad.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAjraLaqeWgoDN9_gxbf5Zu8De6eyTGIAU',
-    appId: '1:272472365314:ios:55ce7d15885cd9b19f0a1b',
-    messagingSenderId: '272472365314',
-    projectId: 'esperflow-1b828',
-    storageBucket: 'esperflow-1b828.firebasestorage.app',
+    apiKey: 'AIzaSyBgK-E6AVnG4wsya5IR2uRtHmjwpKsrSkY',
+    appId: '1:419345748826:ios:befe18e3114a9e429fd963',
+    messagingSenderId: '419345748826',
+    projectId: 'esperflow-638ad',
+    storageBucket: 'esperflow-638ad.firebasestorage.app',
     iosBundleId: 'com.example.esperflow',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyBgK-E6AVnG4wsya5IR2uRtHmjwpKsrSkY',
+    appId: '1:419345748826:ios:befe18e3114a9e429fd963',
+    messagingSenderId: '419345748826',
+    projectId: 'esperflow-638ad',
+    storageBucket: 'esperflow-638ad.firebasestorage.app',
+    iosBundleId: 'com.example.esperflow',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyDQV2HHYdBnzyMLWzOHbhTe10YHJs4CBcw',
+    appId: '1:419345748826:web:6f25c299f51c90839fd963',
+    messagingSenderId: '419345748826',
+    projectId: 'esperflow-638ad',
+    authDomain: 'esperflow-638ad.firebaseapp.com',
+    storageBucket: 'esperflow-638ad.firebasestorage.app',
+    measurementId: 'G-EWRMKG20YY',
   );
 }

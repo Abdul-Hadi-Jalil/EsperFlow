@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "272472365314",
-    "project_id": "esperflow-1b828",
-    "storage_bucket": "esperflow-1b828.firebasestorage.app"
+    "project_number": "419345748826",
+    "project_id": "esperflow-638ad",
+    "storage_bucket": "esperflow-638ad.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:272472365314:android:20e2a43a897ad78e9f0a1b",
+        "mobilesdk_app_id": "1:419345748826:android:850709a45a43e8969fd963",
         "android_client_info": {
           "package_name": "com.example.esperflow"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDgM9dr_1oWdalGgLsnvuxisI7DzsRb0XQ"
+          "current_key": "AIzaSyARZ7SJF7wKg5DsWGUnrNbESc4v4NWv1m8"
         }
       ],
       "services": {

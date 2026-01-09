@@ -18,6 +18,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _genderController = TextEditingController();
 
   String? selectedBloodGroup;
   String? _fullNameError;
@@ -26,6 +27,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _phoneNumberError;
   String? _bloodGroupError;
   String? _addressError;
+  String? _genderError;
 
   bool _validateForm() {
     bool isValid = true;
@@ -38,6 +40,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _phoneNumberError = null;
       _bloodGroupError = null;
       _addressError = null;
+      _genderError = null;
     });
 
     // Validate Full Name
@@ -105,6 +108,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
       isValid = false;
     }
 
+    // Validate Gender
+if (_genderController.text.isEmpty) {
+  setState(() {
+    _genderError = 'Gender is required';
+  });
+  isValid = false;
+} else if (_genderController.text.toLowerCase() != 'male' && 
+           _genderController.text.toLowerCase() != 'female') {
+  setState(() {
+    _genderError = 'Please enter either Male or Female';
+  });
+  isValid = false;
+}
+
     // Validate Address
     if (_addressController.text.isEmpty) {
       setState(() {
@@ -158,6 +175,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
           });
         }
         break;
+        case 'gender':
+  if (_genderError != null) {
+    setState(() {
+      _genderError = null;
+    });
+  }
+  break;
     }
   }
 
@@ -383,6 +407,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
 
               SizedBox(height: 60),
+
+              SizedBox(height: 20),
+
+// gender field with error
+Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    MyTextField(
+      controller: _genderController,
+      hintText: "Gender (Male/Female)",
+      onChanged: (value) => _clearErrorOnChange('gender'),
+    ),
+    if (_genderError != null)
+      Padding(
+        padding: const EdgeInsets.only(left: 15, top: 5),
+        child: Text(
+          _genderError!,
+          style: TextStyle(
+            color: Colors.red,
+            fontSize: 12,
+          ),
+        ),
+      ),
+  ],
+),
 
               // register confirmation button
               MyCustomButtom(
