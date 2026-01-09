@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -13,7 +16,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int currentIndex = 1;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  
+
   // User data variables
   String userName = 'Loading...';
   String userBloodType = 'Loading...';
@@ -23,15 +26,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String userAddress = '';
   String userCNIC = '';
   bool? healthIssue; // Changed to nullable bool to handle both bool and null
-  
+
+  String? errorMessage;
+
   // Donation history
   List<Map<String, dynamic>> donationHistory = [];
-  
+
   // Edit mode
   bool isEditing = false;
   bool isLoading = true;
-  String? errorMessage;
-  
+  String? profilePicBase64;
+
   // Controllers for editing
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -45,10 +50,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   String _formatDateForDisplay(String? dateString) {
-    if (dateString == null || dateString.isEmpty || dateString == 'No donations yet') {
+    if (dateString == null ||
+        dateString.isEmpty ||
+        dateString == 'No donations yet') {
       return 'No donations yet';
     }
-    
+
     try {
       // Try parsing ISO 8601 format (from date picker)
       final date = DateTime.parse(dateString);
@@ -64,11 +71,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       isLoading = true;
       errorMessage = null;
     });
-    
+
     try {
       final user = _auth.currentUser;
       print('Current user UID: ${user?.uid}');
-      
+
       if (user == null) {
         setState(() {
           errorMessage = 'No user logged in';
@@ -78,55 +85,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
 
       final userDoc = await _firestore.collection('User').doc(user.uid).get();
-      
+
       print('User document exists: ${userDoc.exists}');
       if (userDoc.exists) {
         final data = userDoc.data()!;
         print('User data from Firestore: $data');
-        
+
         setState(() {
           // Match field names exactly as in saveUserDataToFirestore()
           userName = data['Full Name'] ?? data['name'] ?? 'Not provided';
-          userBloodType = data['Blood Group'] ?? data['bloodGroup'] ?? 'Unknown';
+          userBloodType =
+              data['Blood Group'] ?? data['bloodGroup'] ?? 'Unknown';
           userEmail = user.email ?? data['Email'] ?? 'Not provided';
-          userPhone = data['Phone Number'] ?? data['phoneNumber'] ?? 'Not provided';
-          userAddress = data['Current Address'] ?? data['address'] ?? 'Not provided';
+          userPhone =
+              data['Phone Number'] ?? data['phoneNumber'] ?? 'Not provided';
+          userAddress =
+              data['Current Address'] ?? data['address'] ?? 'Not provided';
           userCNIC = data['CNIC Number'] ?? 'Not provided';
-          
+
           // FIX: Handle Health Issue which can be bool, string, or null
           var healthIssueData = data['Health Issue'];
           if (healthIssueData is bool) {
             healthIssue = healthIssueData;
           } else if (healthIssueData is String) {
             // If stored as string, try to parse it
-            healthIssue = healthIssueData.toLowerCase() == 'true' || 
-                         healthIssueData.toLowerCase() == 'yes';
+            healthIssue =
+                healthIssueData.toLowerCase() == 'true' ||
+                healthIssueData.toLowerCase() == 'yes';
           } else {
             healthIssue = null;
           }
-          
+
           // FIX: Last blood donation - format for display
           var lastDonation = data['Last Blood Donation'];
-          print('Last Blood Donation raw value: $lastDonation (type: ${lastDonation.runtimeType})');
-          
+          print(
+            'Last Blood Donation raw value: $lastDonation (type: ${lastDonation.runtimeType})',
+          );
+
           if (lastDonation == null || lastDonation.toString().isEmpty) {
             lastDonationDate = 'No donations yet';
           } else {
             lastDonationDate = _formatDateForDisplay(lastDonation.toString());
           }
-          
+
           print('Formatted last donation date: $lastDonationDate');
-          
+
           // Build donation history
           donationHistory = [];
-          if (lastDonationDate != 'No donations yet' && lastDonationDate.isNotEmpty) {
+          if (lastDonationDate != 'No donations yet' &&
+              lastDonationDate.isNotEmpty) {
             donationHistory.add({
               'type': 'Blood Donation',
               'date': lastDonationDate,
-              'location': 'Blood Bank'
+              'location': 'Blood Bank',
             });
           }
-          
+
           isLoading = false;
         });
       } else {
@@ -146,26 +160,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  void _pickAndUploadImage() async {
+    final user = _auth.currentUser;
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
+    if (image != null && user != null) {
+      try {
+        final bytes = await image.readAsBytes();
+        final base64Str = base64Encode(bytes);
+
+        await FirebaseFirestore.instance
+            .collection('User')
+            .doc(user.uid)
+            .update({'profilePicture': base64Str});
+
+        // Update local state to trigger UI refresh
+        setState(() {
+          profilePicBase64 = base64Str;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Profile picture updated!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   Future<void> _updateUserProfile() async {
     try {
       final user = _auth.currentUser;
       if (user != null) {
         // Update with the correct field names from saveUserDataToFirestore()
         await _firestore.collection('User').doc(user.uid).update({
-          'Full Name': _nameController.text.isNotEmpty ? _nameController.text : userName,
-          'Phone Number': _phoneController.text.isNotEmpty ? _phoneController.text : userPhone,
-          'Current Address': _addressController.text.isNotEmpty ? _addressController.text : userAddress,
-          'Blood Group': _bloodTypeController.text.isNotEmpty ? _bloodTypeController.text : userBloodType,
+          'Full Name': _nameController.text.isNotEmpty
+              ? _nameController.text
+              : userName,
+          'Phone Number': _phoneController.text.isNotEmpty
+              ? _phoneController.text
+              : userPhone,
+          'Current Address': _addressController.text.isNotEmpty
+              ? _addressController.text
+              : userAddress,
+          'Blood Group': _bloodTypeController.text.isNotEmpty
+              ? _bloodTypeController.text
+              : userBloodType,
           'updatedAt': FieldValue.serverTimestamp(),
         });
-        
+
         // Reload data
         await _loadUserData();
-        
+
         setState(() {
           isEditing = false;
         });
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -188,11 +244,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _startEditing() {
-    _nameController.text = userName != 'Loading...' && userName != 'Not provided' ? userName : '';
-    _phoneController.text = userPhone != 'Loading...' && userPhone != 'Not provided' ? userPhone : '';
-    _addressController.text = userAddress != 'Loading...' && userAddress != 'Not provided' ? userAddress : '';
-    _bloodTypeController.text = userBloodType != 'Loading...' && userBloodType != 'Unknown' ? userBloodType : '';
-    
+    _nameController.text =
+        userName != 'Loading...' && userName != 'Not provided' ? userName : '';
+    _phoneController.text =
+        userPhone != 'Loading...' && userPhone != 'Not provided'
+        ? userPhone
+        : '';
+    _addressController.text =
+        userAddress != 'Loading...' && userAddress != 'Not provided'
+        ? userAddress
+        : '';
+    _bloodTypeController.text =
+        userBloodType != 'Loading...' && userBloodType != 'Unknown'
+        ? userBloodType
+        : '';
+
     setState(() {
       isEditing = true;
     });
@@ -218,7 +284,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Profile',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         actions: isEditing
             ? [
@@ -266,7 +335,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                 ),
-              
+
               if (isLoading)
                 const Center(
                   child: Padding(
@@ -282,20 +351,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 )
               else ...[
                 const SizedBox(height: 10),
-                
+
                 // profile picture
-                const CircleAvatar(
-                  radius: 60,
-                  backgroundColor: Colors.black26,
-                  child: CircleAvatar(
-                    radius: 59,
-                    backgroundColor: Colors.white,
-                    child: Icon(Icons.person, size: 64),
-                  ),
+                Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    // Profile picture
+                    CircleAvatar(
+                      radius: 60,
+                      backgroundColor: Colors.black26,
+                      backgroundImage: profilePicBase64 != null
+                          ? MemoryImage(base64Decode(profilePicBase64!))
+                          : null,
+                      child: profilePicBase64 == null
+                          ? CircleAvatar(
+                              radius: 59,
+                              backgroundColor: Colors.white,
+                              child: Icon(Icons.person, size: 64),
+                            )
+                          : null,
+                    ),
+
+                    // Edit button
+                    CircleAvatar(
+                      child: IconButton(
+                        icon: Icon(Icons.edit, size: 20, color: Colors.white),
+                        onPressed: () => _pickAndUploadImage(),
+                      ),
+                    ),
+                  ],
                 ),
-                
+
                 const SizedBox(height: 14),
-                
+
                 // name of user - editable if in edit mode
                 if (isEditing)
                   TextField(
@@ -310,19 +398,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 else
                   Text(
                     userName,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-                
+
                 const SizedBox(height: 2),
-                
+
                 // email (not editable)
                 Text(
                   userEmail,
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
-                
+
                 const SizedBox(height: 2),
-                
+
                 // blood type - editable if in edit mode
                 if (isEditing)
                   Column(
@@ -344,17 +435,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     'Blood Type: $userBloodType',
                     style: const TextStyle(fontSize: 16, color: Colors.red),
                   ),
-                
+
                 const SizedBox(height: 2),
-                
+
                 // last donation date
                 Text(
                   'Last Donation: $lastDonationDate',
                   style: const TextStyle(fontSize: 16, color: Colors.red),
                 ),
-                
+
                 const SizedBox(height: 18),
-                
+
                 // edit profile button or save/cancel buttons
                 if (isEditing)
                   Row(
@@ -416,9 +507,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   ),
-                
+
                 const SizedBox(height: 20),
-                
+
                 // Additional editable fields when in edit mode
                 if (isEditing) ...[
                   const SizedBox(height: 10),
@@ -432,9 +523,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     keyboardType: TextInputType.phone,
                   ),
-                  
+
                   const SizedBox(height: 10),
-                  
+
                   TextField(
                     controller: _addressController,
                     decoration: InputDecoration(
@@ -445,10 +536,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     maxLines: 2,
                   ),
-                  
+
                   const SizedBox(height: 20),
                 ],
-                
+
                 // Additional information section
                 Container(
                   width: double.infinity,
@@ -470,44 +561,60 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      
+
                       // Phone
-                      if (userPhone.isNotEmpty && userPhone != 'Not provided' && userPhone != 'Loading...')
+                      if (userPhone.isNotEmpty &&
+                          userPhone != 'Not provided' &&
+                          userPhone != 'Loading...')
                         Row(
                           children: [
-                            Icon(Icons.phone, size: 16, color: Colors.grey[600]),
+                            Icon(
+                              Icons.phone,
+                              size: 16,
+                              color: Colors.grey[600],
+                            ),
                             const SizedBox(width: 12),
                             Expanded(child: Text(userPhone)),
                           ],
                         ),
-                      
+
                       const SizedBox(height: 8),
-                      
+
                       // Address
-                      if (userAddress.isNotEmpty && userAddress != 'Not provided' && userAddress != 'Loading...')
+                      if (userAddress.isNotEmpty &&
+                          userAddress != 'Not provided' &&
+                          userAddress != 'Loading...')
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
+                            Icon(
+                              Icons.location_on,
+                              size: 16,
+                              color: Colors.grey[600],
+                            ),
                             const SizedBox(width: 12),
                             Expanded(child: Text(userAddress)),
                           ],
                         ),
-                      
+
                       const SizedBox(height: 8),
-                      
+
                       // CNIC
                       if (userCNIC.isNotEmpty && userCNIC != 'Not provided')
                         Row(
                           children: [
-                            Icon(Icons.badge, size: 16, color: Colors.grey[600]),
+                            Icon(
+                              Icons.badge,
+                              size: 16,
+                              color: Colors.grey[600],
+                            ),
                             const SizedBox(width: 12),
                             Expanded(child: Text(userCNIC)),
                           ],
                         ),
-                      
+
                       const SizedBox(height: 8),
-                      
+
                       // Health Issue Status
                       if (healthIssue != null)
                         Row(
@@ -515,7 +622,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Icon(
                               healthIssue! ? Icons.warning : Icons.check_circle,
                               size: 16,
-                              color: healthIssue! ? Colors.orange : Colors.green,
+                              color: healthIssue!
+                                  ? Colors.orange
+                                  : Colors.green,
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -528,9 +637,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                 ),
-                
+
                 const SizedBox(height: 20),
-                
+
                 // donation history section
                 Column(
                   children: [
@@ -546,9 +655,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 10),
-                    
+
                     // history content or empty state
                     if (donationHistory.isEmpty)
                       Container(
@@ -559,7 +668,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         child: Column(
                           children: [
-                            Icon(Icons.bloodtype_outlined, size: 48, color: Colors.grey[400]),
+                            Icon(
+                              Icons.bloodtype_outlined,
+                              size: 48,
+                              color: Colors.grey[400],
+                            ),
                             const SizedBox(height: 10),
                             Text(
                               'No donation history yet',
@@ -592,20 +705,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 40),
-                
+
                 // debug button to check Firestore data
                 InkWell(
                   onTap: () async {
                     final user = _auth.currentUser;
                     if (user != null) {
-                      final doc = await _firestore.collection('User').doc(user.uid).get();
+                      final doc = await _firestore
+                          .collection('User')
+                          .doc(user.uid)
+                          .get();
                       print('Firestore data: ${doc.data()}');
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Document exists: ${doc.exists}\nData: ${doc.data()}'),
+                            content: Text(
+                              'Document exists: ${doc.exists}\nData: ${doc.data()}',
+                            ),
                             duration: const Duration(seconds: 5),
                           ),
                         );
@@ -620,12 +738,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ),
-                
+
                 // sign out button
                 InkWell(
                   onTap: () async {
                     await FirebaseAuth.instance.signOut();
-                    
+
                     // Navigate back to the root (App widget)
                     if (context.mounted) {
                       Navigator.pushNamedAndRemoveUntil(
@@ -689,7 +807,7 @@ class DonationHistoryTile extends StatelessWidget {
   final String title;
   final String subTitle;
   final String location;
-  
+
   const DonationHistoryTile({
     super.key,
     required this.title,
@@ -717,7 +835,10 @@ class DonationHistoryTile extends StatelessWidget {
           children: [
             Text(subTitle, style: const TextStyle(color: Colors.red)),
             if (location.isNotEmpty)
-              Text(location, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+              Text(
+                location,
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              ),
           ],
         ),
       ),
