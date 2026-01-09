@@ -19,6 +19,9 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
   final TextEditingController _hospitalNameController = TextEditingController();
   final TextEditingController _additionalController = TextEditingController();
 
+  // NEW: Added controller for health note
+  final TextEditingController _healthNoteController = TextEditingController();
+
   String? selectedBloodGroup;
   List<String> bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -57,6 +60,8 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
         "location": _locationController.text,
         "hospitalName": _hospitalNameController.text,
         "additionalNotes": _additionalController.text,
+        // NEW: Added health note to Firestore
+        "healthNote": _healthNoteController.text,
         "timestamp": FieldValue.serverTimestamp(),
         "status": "Pending",
         "requestDate": DateTime.now().toIso8601String(),
@@ -80,7 +85,6 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
       } else {
         _showNoDonorsDialog();
       }
-
     } catch (e) {
       print('Error saving blood request: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -106,17 +110,20 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
           .get();
 
       List<Map<String, dynamic>> matchingDonors = [];
-      DateTime threeMonthsAgo = DateTime.now().subtract(const Duration(days: 90));
+      DateTime threeMonthsAgo = DateTime.now().subtract(
+        const Duration(days: 90),
+      );
 
       // Filter donors based on last donation date
       for (var doc in snapshot.docs) {
         var data = doc.data() as Map<String, dynamic>;
-        
+
         // Check if user has donated before
         if (data["Last Blood Donation"] != null) {
           // Convert Firestore Timestamp to DateTime
-          DateTime lastDonation = (data["Last Blood Donation"] as Timestamp).toDate();
-          
+          DateTime lastDonation = (data["Last Blood Donation"] as Timestamp)
+              .toDate();
+
           // Only include if last donation was more than 3 months ago
           if (lastDonation.isBefore(threeMonthsAgo)) {
             matchingDonors.add({
@@ -126,14 +133,13 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
           }
         } else {
           // Never donated before, eligible to donate
-          matchingDonors.add({
-            ...data,
-            'id': doc.id,
-          });
+          matchingDonors.add({...data, 'id': doc.id});
         }
       }
 
-      print('Found ${matchingDonors.length} matching donors for $selectedBloodGroup');
+      print(
+        'Found ${matchingDonors.length} matching donors for $selectedBloodGroup',
+      );
       return matchingDonors;
     } catch (e) {
       print('Error finding donors: $e');
@@ -199,10 +205,7 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
                         child: Text(
                           'No donors available',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey,
-                          ),
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
                         ),
                       )
                     : ListView.builder(
@@ -227,9 +230,10 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
                                       CircleAvatar(
                                         backgroundColor: Colors.red.shade100,
                                         child: Text(
-                                          donor["Full Name"] != null && 
-                                          donor["Full Name"].isNotEmpty 
-                                              ? donor["Full Name"][0].toUpperCase()
+                                          donor["Full Name"] != null &&
+                                                  donor["Full Name"].isNotEmpty
+                                              ? donor["Full Name"][0]
+                                                    .toUpperCase()
                                               : '?',
                                           style: TextStyle(
                                             color: Colors.red.shade700,
@@ -240,7 +244,8 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               donor["Full Name"] ?? 'Unknown',
@@ -251,13 +256,15 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
                                             ),
                                             const SizedBox(height: 4),
                                             Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                horizontal: 8,
-                                                vertical: 3,
-                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 3,
+                                                  ),
                                               decoration: BoxDecoration(
                                                 color: Colors.red.shade700,
-                                                borderRadius: BorderRadius.circular(12),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
                                               ),
                                               child: Text(
                                                 donor["Blood Group"] ?? 'N/A',
@@ -275,13 +282,14 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
                                   ),
                                   const SizedBox(height: 12),
                                   _buildInfoRow(
-                                    Icons.phone, 
-                                    donor["Phone Number"] ?? 'Not provided'
+                                    Icons.phone,
+                                    donor["Phone Number"] ?? 'Not provided',
                                   ),
                                   const SizedBox(height: 6),
                                   _buildInfoRow(
-                                    Icons.location_on, 
-                                    donor["Current Address"] ?? 'Address not available'
+                                    Icons.location_on,
+                                    donor["Current Address"] ??
+                                        'Address not available',
                                   ),
                                   const SizedBox(height: 6),
                                   _buildInfoRow(
@@ -333,7 +341,7 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
 
   String _formatLastDonation(dynamic lastDonation) {
     if (lastDonation == null) return "Never";
-    
+
     try {
       DateTime date = (lastDonation as Timestamp).toDate();
       return "${date.day}/${date.month}/${date.year}";
@@ -350,10 +358,7 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
         Expanded(
           child: Text(
             text,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[700],
-            ),
+            style: TextStyle(fontSize: 13, color: Colors.grey[700]),
           ),
         ),
       ],
@@ -396,6 +401,8 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
     _locationController.clear();
     _hospitalNameController.clear();
     _additionalController.clear();
+    // NEW: Clear health note controller
+    _healthNoteController.clear();
     setState(() {
       selectedBloodGroup = null;
       selectedQuantity = null;
@@ -428,6 +435,11 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
       _showValidationError('Please enter hospital name');
       return false;
     }
+    // NEW: Added validation for health note
+    if (_healthNoteController.text.isEmpty) {
+      _showValidationError('Please add a health note about the patient');
+      return false;
+    }
     return true;
   }
 
@@ -448,6 +460,8 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
     _phoneNumberController.dispose();
     _hospitalNameController.dispose();
     _additionalController.dispose();
+    // NEW: Dispose health note controller
+    _healthNoteController.dispose();
     super.dispose();
   }
 
@@ -532,7 +546,10 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
 
               // drop down menu for blood group selection
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.red.shade50,
                   borderRadius: BorderRadius.circular(9),
@@ -572,7 +589,10 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
 
               // drop down menu for required blood quantity
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.red.shade50,
                   borderRadius: BorderRadius.circular(9),
@@ -636,6 +656,55 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
                 controller: _hospitalNameController,
               ),
               const SizedBox(height: 15),
+
+              // NEW: Health note about patient
+              Container(
+                margin: const EdgeInsets.only(bottom: 15),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Patient Health Note*',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: Colors.red,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    TextField(
+                      controller: _healthNoteController,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        hintText:
+                            'Enter health details (e.g., condition, urgency, medical history)',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(9),
+                          borderSide: BorderSide(color: Colors.red.shade200),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(9),
+                          borderSide: BorderSide(color: Colors.red.shade400),
+                        ),
+                        filled: true,
+                        fillColor: Colors.red.shade50,
+                        contentPadding: const EdgeInsets.all(15),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 5.0, left: 5),
+                      child: Text(
+                        'This helps donors understand the patient\'s condition',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
               // additional notes
               MyTextField(
