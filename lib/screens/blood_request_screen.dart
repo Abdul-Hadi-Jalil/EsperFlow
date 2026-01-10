@@ -657,7 +657,7 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
               ),
               const SizedBox(height: 15),
 
-              // NEW: Health note about patient
+              // Health note about patient
               Container(
                 margin: const EdgeInsets.only(bottom: 15),
                 child: Column(

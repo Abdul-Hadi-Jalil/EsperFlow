@@ -408,7 +408,7 @@ if (_genderController.text.isEmpty) {
 
               SizedBox(height: 60),
 
-              SizedBox(height: 20),
+              
 
 // gender field with error
 Column(
@@ -432,6 +432,7 @@ Column(
       ),
   ],
 ),
+SizedBox(height: 20),
 
               // register confirmation button
               MyCustomButtom(
