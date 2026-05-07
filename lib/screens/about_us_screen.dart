@@ -12,18 +12,12 @@ class AboutUsScreen extends StatelessWidget {
     // Owners information list
     final List<Map<String, String>> owners = [
       {
-        'name': 'Awais Tahir',
+        'name': 'Abdul Hadi Jalil',
         'position': 'CEO',
-        'phone': '03189005624',
-        'email': 'L1f21bsds0012@ucp.edu.pk',
-        'description': 'Awais is the visionary behind EsperFlow, driving the strategic direction and overall success of our mission to revolutionize blood donation through technology.',
-      },
-      {
-        'name': 'Umar Tariq',
-        'position': 'Manager',
-        'phone': '03104878731',
-        'email': 'l1f21bsds0055@ucp.edu.pk',
-        'description': 'Umar oversees daily operations and ensures seamless coordination between donors, recipients, and healthcare partners to maximize our impact.',
+        'phone': '03098979308',
+        'email': 'abdulhadijalil@gmail.com',
+        'description':
+            'Abdul Hadi is the visionary behind EsperFlow, driving the strategic direction and overall success of our mission to revolutionize blood donation through technology.',
       },
     ];
 
@@ -56,10 +50,7 @@ class AboutUsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'About Us',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
         ),
         centerTitle: true,
         backgroundColor: Colors.red.shade700,
@@ -72,11 +63,7 @@ class AboutUsScreen extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Colors.red.shade50,
-                Colors.white,
-                Colors.red.shade50,
-              ],
+              colors: [Colors.red.shade50, Colors.white, Colors.red.shade50],
             ),
           ),
           child: Column(
@@ -84,13 +71,13 @@ class AboutUsScreen extends StatelessWidget {
               // Header Banner
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 30,
+                  horizontal: 20,
+                ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      Colors.red.shade600,
-                      Colors.red.shade800,
-                    ],
+                    colors: [Colors.red.shade600, Colors.red.shade800],
                   ),
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(30),
@@ -163,10 +150,7 @@ class AboutUsScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          Icons.flag_outlined,
-                          color: Colors.red.shade700,
-                        ),
+                        Icon(Icons.flag_outlined, color: Colors.red.shade700),
                         const SizedBox(width: 10),
                         Text(
                           'Our Mission',
@@ -181,10 +165,7 @@ class AboutUsScreen extends StatelessWidget {
                     const SizedBox(height: 15),
                     const Text(
                       'At EsperFlow, we are dedicated to creating a centralized platform that bridges the gap between blood donors and those in need. Our mission is to revolutionize the blood donation ecosystem by providing a reliable, efficient, and accessible system that connects willing donors with recipients during critical times. We believe that every life is precious, and by leveraging technology, we aim to eliminate delays in finding compatible blood types, reduce dependency on fragmented systems, and create a community-driven network where help is just a tap away. Together, we are building a future where no one has to suffer due to the unavailability of blood.',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black87,
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.black87),
                       textAlign: TextAlign.justify,
                     ),
                   ],
@@ -199,10 +180,7 @@ class AboutUsScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          Icons.group_outlined,
-                          color: Colors.red.shade700,
-                        ),
+                        Icon(Icons.group_outlined, color: Colors.red.shade700),
                         const SizedBox(width: 10),
                         Text(
                           'Meet Our Team',
@@ -268,7 +246,8 @@ class AboutUsScreen extends StatelessWidget {
                                     const SizedBox(width: 15),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             owner['name']!,
@@ -309,7 +288,8 @@ class AboutUsScreen extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Contact Information',
@@ -332,7 +312,9 @@ class AboutUsScreen extends StatelessWidget {
                                           Expanded(
                                             child: Text(
                                               owner['phone']!,
-                                              style: const TextStyle(fontSize: 16),
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                              ),
                                             ),
                                           ),
                                           IconButton(
@@ -340,7 +322,8 @@ class AboutUsScreen extends StatelessWidget {
                                               Icons.call,
                                               color: Colors.red.shade700,
                                             ),
-                                            onPressed: () => makeCall(owner['phone']!),
+                                            onPressed: () =>
+                                                makeCall(owner['phone']!),
                                             tooltip: 'Call',
                                           ),
                                           IconButton(
@@ -348,7 +331,10 @@ class AboutUsScreen extends StatelessWidget {
                                               Icons.content_copy,
                                               color: Colors.red.shade700,
                                             ),
-                                            onPressed: () => copyToClipboard(owner['phone']!, 'Phone number'),
+                                            onPressed: () => copyToClipboard(
+                                              owner['phone']!,
+                                              'Phone number',
+                                            ),
                                             tooltip: 'Copy number',
                                           ),
                                         ],
@@ -366,7 +352,9 @@ class AboutUsScreen extends StatelessWidget {
                                           Expanded(
                                             child: Text(
                                               owner['email']!,
-                                              style: const TextStyle(fontSize: 16),
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                              ),
                                             ),
                                           ),
                                           IconButton(
@@ -374,7 +362,8 @@ class AboutUsScreen extends StatelessWidget {
                                               Icons.email,
                                               color: Colors.red.shade700,
                                             ),
-                                            onPressed: () => launchEmail(owner['email']!),
+                                            onPressed: () =>
+                                                launchEmail(owner['email']!),
                                             tooltip: 'Send email',
                                           ),
                                           IconButton(
@@ -382,7 +371,10 @@ class AboutUsScreen extends StatelessWidget {
                                               Icons.content_copy,
                                               color: Colors.red.shade700,
                                             ),
-                                            onPressed: () => copyToClipboard(owner['email']!, 'Email'),
+                                            onPressed: () => copyToClipboard(
+                                              owner['email']!,
+                                              'Email',
+                                            ),
                                             tooltip: 'Copy email',
                                           ),
                                         ],
@@ -399,8 +391,6 @@ class AboutUsScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
-             
             ],
           ),
         ),
