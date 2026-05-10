@@ -40,11 +40,13 @@ class _MyTextFieldState extends State<MyTextField> {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      maxLength: 120,
       controller: widget.controller,
       keyboardType: widget.keyboardType,
       onChanged: widget.onChanged,
       obscureText: _isObscured,
       decoration: InputDecoration(
+        counterText: "",
         labelText: widget.labelText,
         hintText: widget.hintText,
         fillColor: Colors.red.shade50,

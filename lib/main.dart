@@ -1,12 +1,10 @@
 //import 'package:esperflow/app.dart';
 import 'package:esperflow/firebase_options.dart';
-import 'package:esperflow/provider/register_provider.dart';
 import 'package:esperflow/screens/blood_donate_screen.dart';
 import 'package:esperflow/screens/blood_request_screen.dart';
 import 'package:esperflow/screens/home_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 //import 'package:esperflow/screens/about_us_screen.dart';
 //import 'package:esperflow/screens/additional_information_screen.dart';
 // import 'package:esperflow/screens/blood_bank_screen.dart';
@@ -33,33 +31,28 @@ class EsperFlow extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => RegisterProvider()),
-      ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.red),
-        ),
-        home: HomeScreen(),
-        routes: {
-          '/homeScreen': (context) => HomeScreen(),
-          '/bloodRequestScreen': (context) => BloodRequestScreen(),
-          '/bloodDonateScreen': (context) => BloodDonateScreen(),
-          //'/loginScreen': (context) => LoginScreen(),
-          //'/registerScreen': (context) => RegisterScreen(),
-          //'/additionalInformationScreen': (context) => AdditionalInformationScreen(),
-          //'/faqScreen': (context) => FaqScreen(),
-          //'/profileScreen': (context) => ProfileScreen(),
-          //'/emergencyContactScreen': (context) => EmergencyContactScreen(),
-          //'/aboutUsScreen': (context) => AboutUsScreen(),
-          //'/verifiedHospitalsScreen': (context) => VerifiedHospitalsScreen(),
-          //'/bloodBanksScreen': (context) => BloodBanksScreen(),
-          //'/donationHistoryScreen': (context) => DonationHistoryScreen(),
-          //'/chatBotScreen': (context) => ChatBotScreen(),
-        },
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.red),
       ),
+      home: HomeScreen(),
+      routes: {
+        '/homeScreen': (context) => HomeScreen(),
+        '/bloodRequestScreen': (context) => BloodRequestScreen(),
+        '/bloodDonateScreen': (context) => BloodDonateScreen(),
+        //'/loginScreen': (context) => LoginScreen(),
+        //'/registerScreen': (context) => RegisterScreen(),
+        //'/additionalInformationScreen': (context) => AdditionalInformationScreen(),
+        //'/faqScreen': (context) => FaqScreen(),
+        //'/profileScreen': (context) => ProfileScreen(),
+        //'/emergencyContactScreen': (context) => EmergencyContactScreen(),
+        //'/aboutUsScreen': (context) => AboutUsScreen(),
+        //'/verifiedHospitalsScreen': (context) => VerifiedHospitalsScreen(),
+        //'/bloodBanksScreen': (context) => BloodBanksScreen(),
+        //'/donationHistoryScreen': (context) => DonationHistoryScreen(),
+        //'/chatBotScreen': (context) => ChatBotScreen(),
+      },
     );
   }
 }

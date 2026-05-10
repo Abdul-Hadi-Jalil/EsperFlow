@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:esperflow/widgets/my_custom_buttom.dart';
 import 'package:esperflow/widgets/my_text_field.dart';
 import 'package:flutter/material.dart';
@@ -14,360 +13,18 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
   // controllers
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
 
   String? selectedBloodGroup;
   List<String> bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
-  bool _isSubmitting = false;
+  String? selectedUrgency = 'No'; // Default to "No"
 
-  // Store the selected blood group before clearing for dialog display
-  String? _submittedBloodGroup;
+  bool _isSubmitting = false;
 
   Future<void> saveBloodRequestData() async {
     setState(() {
       _isSubmitting = true;
-    });
-
-    // Store the blood group before clearing
-    _submittedBloodGroup = selectedBloodGroup;
-
-    try {
-      // Save to Firestore using "Blood Request" collection (with space)
-      await FirebaseFirestore.instance.collection('Blood Request').add({
-        "fullName": _fullNameController.text,
-        "bloodGroup": selectedBloodGroup,
-        "location": _locationController.text,
-        "timestamp": FieldValue.serverTimestamp(),
-        "status": "Pending",
-        "requestDate": DateTime.now().toIso8601String(),
-      });
-
-      // Find matching donors from Firebase
-      List<Map<String, dynamic>> matchingDonors = await findMatchingDonors();
-
-      // Show matching donors
-      if (matchingDonors.isNotEmpty) {
-        _showAvailableDonors(matchingDonors);
-      } else {
-        _showNoDonorsDialog();
-      }
-    } catch (e) {
-      print('Error saving blood request: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to submit request: ${e.toString()}'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    } finally {
-      setState(() {
-        _isSubmitting = false;
-      });
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> findMatchingDonors() async {
-    try {
-      // Query Firebase for users with matching blood group
-      QuerySnapshot snapshot = await FirebaseFirestore.instance
-          .collection('User')
-          .where('Blood Group', isEqualTo: selectedBloodGroup)
-          .get();
-
-      List<Map<String, dynamic>> matchingDonors = [];
-      DateTime threeMonthsAgo = DateTime.now().subtract(
-        const Duration(days: 90),
-      );
-
-      // Filter donors based on last donation date
-      for (var doc in snapshot.docs) {
-        var data = doc.data() as Map<String, dynamic>;
-
-        // Check if user has donated before
-        if (data["Last Blood Donation"] != null) {
-          // Convert Firestore Timestamp to DateTime
-          DateTime lastDonation = (data["Last Blood Donation"] as Timestamp)
-              .toDate();
-
-          // Only include if last donation was more than 3 months ago
-          if (lastDonation.isBefore(threeMonthsAgo)) {
-            matchingDonors.add({
-              ...data,
-              'id': doc.id, // Include document ID for reference
-            });
-          }
-        } else {
-          // Never donated before, eligible to donate
-          matchingDonors.add({...data, 'id': doc.id});
-        }
-      }
-
-      print(
-        'Found ${matchingDonors.length} matching donors for $selectedBloodGroup',
-      );
-      return matchingDonors;
-    } catch (e) {
-      print('Error finding donors: $e');
-      return [];
-    }
-  }
-
-  void _showAvailableDonors(List<Map<String, dynamic>> donors) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        child: Container(
-          constraints: const BoxConstraints(maxHeight: 600),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade700,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(15),
-                    topRight: Radius.circular(15),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.people, color: Colors.white, size: 28),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Available Donors',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            '${donors.length} donor${donors.length > 1 ? 's' : ''} found with $_submittedBloodGroup',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Donors list
-              Flexible(
-                child: donors.isEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.all(40),
-                        child: Text(
-                          'No donors available',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 16, color: Colors.grey),
-                        ),
-                      )
-                    : ListView.builder(
-                        shrinkWrap: true,
-                        padding: const EdgeInsets.all(15),
-                        itemCount: donors.length,
-                        itemBuilder: (context, index) {
-                          final donor = donors[index];
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(15),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      CircleAvatar(
-                                        backgroundColor: Colors.red.shade100,
-                                        child: Text(
-                                          donor["Full Name"] != null &&
-                                                  donor["Full Name"].isNotEmpty
-                                              ? donor["Full Name"][0]
-                                                    .toUpperCase()
-                                              : '?',
-                                          style: TextStyle(
-                                            color: Colors.red.shade700,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              donor["Full Name"] ?? 'Unknown',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 8,
-                                                    vertical: 3,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.red.shade700,
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
-                                              child: Text(
-                                                donor["Blood Group"] ?? 'N/A',
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 12),
-                                  _buildInfoRow(
-                                    Icons.phone,
-                                    donor["Phone Number"] ?? 'Not provided',
-                                  ),
-                                  const SizedBox(height: 6),
-                                  _buildInfoRow(
-                                    Icons.location_on,
-                                    donor["Current Address"] ??
-                                        'Address not available',
-                                  ),
-                                  const SizedBox(height: 6),
-                                  _buildInfoRow(
-                                    Icons.calendar_today,
-                                    'Last Donation: ${_formatLastDonation(donor["Last Blood Donation"])}',
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-              ),
-
-              // Close button
-              Padding(
-                padding: const EdgeInsets.all(15),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _clearForm(); // Clear form after closing dialog
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red.shade700,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: const Text(
-                      'Close',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _formatLastDonation(dynamic lastDonation) {
-    if (lastDonation == null) return "Never";
-
-    try {
-      DateTime date = (lastDonation as Timestamp).toDate();
-      return "${date.day}/${date.month}/${date.year}";
-    } catch (e) {
-      return "N/A";
-    }
-  }
-
-  Widget _buildInfoRow(IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: Colors.grey[600]),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(fontSize: 13, color: Colors.grey[700]),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showNoDonorsDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        title: Row(
-          children: [
-            Icon(Icons.info_outline, color: Colors.orange.shade700, size: 28),
-            const SizedBox(width: 10),
-            const Text('No Donors Available'),
-          ],
-        ),
-        content: Text(
-          'Currently, there are no available donors with $_submittedBloodGroup blood group. '
-          'Your request has been submitted and will be visible to all users.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _clearForm(); // Clear form after closing dialog
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _clearForm() {
-    _fullNameController.clear();
-    _locationController.clear();
-
-    setState(() {
-      selectedBloodGroup = null;
-      _submittedBloodGroup = null;
     });
   }
 
@@ -375,6 +32,7 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
   void dispose() {
     _fullNameController.dispose();
     _locationController.dispose();
+    _phoneNumberController.dispose();
     super.dispose();
   }
 
@@ -435,6 +93,13 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
               ),
               const SizedBox(height: 15),
 
+              // Phone number field (optional)
+              MyTextField(
+                controller: _phoneNumberController,
+                hintText: "Phone Number (Optional)",
+              ),
+              const SizedBox(height: 15),
+
               // drop down menu for blood group selection
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -480,14 +145,73 @@ class _BloodRequestScreenState extends State<BloodRequestScreen> {
 
               // location field
               MyTextField(
-                hintText: "Location (City/Area)",
+                hintText: "Location (City/Area/Hospital)",
                 controller: _locationController,
               ),
+              const SizedBox(height: 15),
+
+              // Urgent or Not
+              Row(
+                spacing: 20,
+                children: [
+                  Row(
+                    children: [
+                      Radio<String>(
+                        value: 'Urgent',
+                        groupValue: selectedUrgency,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedUrgency = value;
+                          });
+                        },
+                      ),
+                      SizedBox(width: 4),
+                      Text('Urgent'),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Radio<String>(
+                        value: 'Not Urgent',
+                        groupValue: selectedUrgency,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedUrgency = value;
+                          });
+                        },
+                      ),
+                      SizedBox(width: 4),
+                      Text('Not Urgent'),
+                    ],
+                  ),
+                ],
+              ),
+
               const SizedBox(height: 35),
 
               // submit button
               MyCustomButtom(
                 onTap: () {
+                  // Alert dialog will appear to confirm the submission of the blood request
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        content: const Text(
+                          "Your request will be visible to all users in the app.",
+                        ),
+                        actions: [
+                          ElevatedButton(
+                            child: const Text("Exit"),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
                   saveBloodRequestData();
                 },
                 backgroundColor: const Color(0xFFE31A1A),

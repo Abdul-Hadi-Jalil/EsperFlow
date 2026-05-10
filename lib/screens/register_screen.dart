@@ -1,8 +1,5 @@
-import 'package:esperflow/provider/register_provider.dart';
-import 'package:esperflow/widgets/my_custom_buttom.dart';
 import 'package:esperflow/widgets/my_text_field.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -26,100 +23,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _phoneNumberError;
   String? _bloodGroupError;
   String? _addressError;
-
-  bool _validateForm() {
-    bool isValid = true;
-
-    // Reset all errors
-    setState(() {
-      _fullNameError = null;
-      _emailError = null;
-      _passwordError = null;
-      _phoneNumberError = null;
-      _bloodGroupError = null;
-      _addressError = null;
-    });
-
-    // Validate Full Name
-    if (_fullNameController.text.isEmpty) {
-      setState(() {
-        _fullNameError = 'Full name is required';
-      });
-      isValid = false;
-    } else if (_fullNameController.text.length < 3) {
-      setState(() {
-        _fullNameError = 'Name must be at least 3 characters';
-      });
-      isValid = false;
-    }
-
-    // Validate Email
-    if (_emailController.text.isEmpty) {
-      setState(() {
-        _emailError = 'Email is required';
-      });
-      isValid = false;
-    } else if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(_emailController.text)) {
-      setState(() {
-        _emailError = 'Please enter a valid email address';
-      });
-      isValid = false;
-    }
-
-    // Validate Password
-    if (_passwordController.text.isEmpty) {
-      setState(() {
-        _passwordError = 'Password is required';
-      });
-      isValid = false;
-    } else if (_passwordController.text.length < 7) {
-      setState(() {
-        _passwordError = 'Password must be at least 7 characters';
-      });
-      isValid = false;
-    }
-
-    // Validate Phone Number
-    if (_phoneNumberController.text.isEmpty) {
-      setState(() {
-        _phoneNumberError = 'Phone number is required';
-      });
-      isValid = false;
-    } else if (!_phoneNumberController.text.startsWith("+92")) {
-      setState(() {
-        _phoneNumberError = 'Phone number must start with +92';
-      });
-      isValid = false;
-    } else if (_phoneNumberController.text.length != 13) {
-      setState(() {
-        _phoneNumberError = 'Phone number must be 13 characters (including +92)';
-      });
-      isValid = false;
-    }
-
-    // Validate Blood Group
-    if (selectedBloodGroup == null) {
-      setState(() {
-        _bloodGroupError = 'Please select your blood group';
-      });
-      isValid = false;
-    }
-
-    // Validate Address
-    if (_addressController.text.isEmpty) {
-      setState(() {
-        _addressError = 'Address is required';
-      });
-      isValid = false;
-    } else if (_addressController.text.length < 10) {
-      setState(() {
-        _addressError = 'Please enter a more detailed address';
-      });
-      isValid = false;
-    }
-
-    return isValid;
-  }
 
   void _clearErrorOnChange(String field) {
     switch (field) {
@@ -218,10 +121,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       padding: const EdgeInsets.only(left: 15, top: 5),
                       child: Text(
                         _fullNameError!,
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.red, fontSize: 12),
                       ),
                     ),
                 ],
@@ -243,10 +143,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       padding: const EdgeInsets.only(left: 15, top: 5),
                       child: Text(
                         _emailError!,
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.red, fontSize: 12),
                       ),
                     ),
                 ],
@@ -270,10 +167,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       padding: const EdgeInsets.only(left: 15, top: 5),
                       child: Text(
                         _passwordError!,
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.red, fontSize: 12),
                       ),
                     ),
                 ],
@@ -295,10 +189,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       padding: const EdgeInsets.only(left: 15, top: 5),
                       child: Text(
                         _phoneNumberError!,
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.red, fontSize: 12),
                       ),
                     ),
                 ],
@@ -328,7 +219,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         items: bloodGroups.map((group) {
                           return DropdownMenuItem(
-                              value: group, child: Text(group));
+                            value: group,
+                            child: Text(group),
+                          );
                         }).toList(),
                         onChanged: (value) {
                           setState(() {
@@ -348,10 +241,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       padding: const EdgeInsets.only(left: 15, top: 5),
                       child: Text(
                         _bloodGroupError!,
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.red, fontSize: 12),
                       ),
                     ),
                 ],
@@ -373,59 +263,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       padding: const EdgeInsets.only(left: 15, top: 5),
                       child: Text(
                         _addressError!,
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.red, fontSize: 12),
                       ),
                     ),
                 ],
               ),
 
               SizedBox(height: 60),
-
-              // register confirmation button
-              MyCustomButtom(
-                backgroundColor: Color(0xFFE31A1A),
-                text: "Continue",
-                textColor: Colors.white,
-                onTap: () {
-                  if (_validateForm()) {
-                    context.read<RegisterProvider>().updateRegisterData(
-                      newName: _fullNameController.text,
-                      newEmail: _emailController.text,
-                      newPassword: _passwordController.text,
-                      newPhoneNumber: _phoneNumberController.text,
-                      newBloodGroup: selectedBloodGroup ?? " ",
-                      newAddress: _addressController.text,
-                    );
-                    
-                    // Your original phone validation logic (keeping it as is)
-                    if (_phoneNumberController.text.length == 13 &&
-                        _phoneNumberController.text.startsWith("+92")) {
-                      Navigator.pushNamed(
-                        context,
-                        '/additionalInformationScreen',
-                      );
-                    } else {
-                      // This should rarely happen now since validation is done above
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("Please enter a valid Phone number"),
-                        ),
-                      );
-                    }
-                  } else {
-                    // Show a general error message if validation fails
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Either you did not fill any field or did not write a field correctly"),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                },
-              ),
             ],
           ),
         ),
