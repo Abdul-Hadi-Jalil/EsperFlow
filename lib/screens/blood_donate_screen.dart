@@ -1,7 +1,9 @@
-// todo: later give the code to ai to check the button name for submitting for blood request and blood donate screen. It should be different for both screens. For blood request it should be "Submit Request" and for blood donate it should be "Submit Donation"
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:esperflow/widgets/my_custom_buttom.dart';
 import 'package:esperflow/widgets/my_text_field.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 class BloodDonateScreen extends StatefulWidget {
   const BloodDonateScreen({super.key});
@@ -12,11 +14,15 @@ class BloodDonateScreen extends StatefulWidget {
 
 class _BloodDonateScreenState extends State<BloodDonateScreen> {
   // controllers
-  // controllers
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _availabilityController = TextEditingController();
+
+  String? fullName = "";
+  String? location = "";
+  String? phoneNumber = "";
+  String? availability = "";
 
   String? selectedBloodGroup;
   List<String> bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -227,26 +233,47 @@ class _BloodDonateScreenState extends State<BloodDonateScreen> {
 
               // submit button
               MyCustomButtom(
-                onTap: () {
-                  // Alert dialog will appear to confirm the submission of the blood request
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        content: const Text(
-                          "Your request will be visible to all users in the app.",
-                        ),
-                        actions: [
-                          ElevatedButton(
-                            child: const Text("Exit"),
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  );
+                onTap: () async {
+                  fullName = _fullNameController.text.trim();
+                  location = _locationController.text.trim();
+                  phoneNumber = _phoneNumberController.text.trim();
+                  availability = _availabilityController.text.trim();
+
+                  // get the device id
+                  String? deviceId;
+                  deviceId = Uuid().v4(); // Generate unique ID
+
+                  // create fcm token and save data to firebase
+                  // Get FCM token
+                  final FirebaseMessaging messaging =
+                      FirebaseMessaging.instance;
+
+                  NotificationSettings settings = await messaging
+                      .requestPermission(alert: true, badge: true, sound: true);
+
+                  String? fcmToken;
+                  if (settings.authorizationStatus ==
+                      AuthorizationStatus.authorized) {
+                    fcmToken = await messaging.getToken();
+                  }
+
+                  // Save to Firebase with the token
+                  await FirebaseFirestore.instance
+                      .collection('donors')
+                      .doc(deviceId)
+                      .set({
+                        'fullName': fullName,
+                        'location': location,
+                        'phoneNumber': phoneNumber,
+                        'availability': availability,
+                        'bloodGroup': selectedBloodGroup,
+                        'allowCalls': allowCalls,
+                        'activeDonorStatus': activeDonorStatus,
+                        'fcmToken': fcmToken,
+                        'registeredAt': FieldValue.serverTimestamp(),
+                      });
+
+                  // todo: Show success alert dialog
                 },
                 backgroundColor: const Color(0xFFE31A1A),
                 text: _isSubmitting ? "Submitting..." : "Submit Donation",
