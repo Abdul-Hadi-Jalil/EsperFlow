@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+
+# Environment
+.env
+.env.local
+*.log
+
+# Never commit Firebase Admin credentials
+serviceAccountKey.json
+*-firebase-adminsdk-*.json

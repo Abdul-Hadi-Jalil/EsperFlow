@@ -1,0 +1,62 @@
+//import 'package:esperflow/app.dart';
+import 'package:esperflow/firebase_options.dart';
+import 'package:esperflow/screens/blood_donate_screen.dart';
+import 'package:esperflow/screens/blood_request_screen.dart';
+import 'package:esperflow/screens/home_screen.dart';
+import 'package:esperflow/services/notification_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+//import 'package:esperflow/screens/about_us_screen.dart';
+//import 'package:esperflow/screens/additional_information_screen.dart';
+// import 'package:esperflow/screens/blood_bank_screen.dart';
+//import 'package:esperflow/screens/donation_history_screen.dart';
+// import 'package:esperflow/screens/emergency_contact_screen.dart';
+// import 'package:esperflow/screens/faq_screen.dart';
+//import 'package:esperflow/screens/login_screen.dart';
+// import 'package:esperflow/screens/profile_screen.dart';
+// import 'package:esperflow/screens/register_screen.dart';
+// import 'package:esperflow/screens/verified_hospital_screen.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Listens for blood requests broadcast by the backend and keeps this
+  // device's FCM token current.
+  await NotificationService.initialize();
+
+  runApp(const EsperFlow());
+}
+
+class EsperFlow extends StatelessWidget {
+  const EsperFlow({super.key});
+
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      // Lets an incoming push open a dialog without a BuildContext.
+      navigatorKey: NotificationService.navigatorKey,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.red),
+      ),
+      home: HomeScreen(),
+      routes: {
+        '/homeScreen': (context) => HomeScreen(),
+        '/bloodRequestScreen': (context) => BloodRequestScreen(),
+        '/bloodDonateScreen': (context) => BloodDonateScreen(),
+        // '/loginScreen': (context) => LoginScreen(),
+        // '/registerScreen': (context) => RegisterScreen(),
+        // '/additionalInformationScreen': (context) => AdditionalInformationScreen(),
+        // '/faqScreen': (context) => FaqScreen(),
+        // '/profileScreen': (context) => ProfileScreen(),
+        // '/emergencyContactScreen': (context) => EmergencyContactScreen(),
+        // '/aboutUsScreen': (context) => AboutUsScreen(),
+        // '/verifiedHospitalsScreen': (context) => VerifiedHospitalsScreen(),
+        // '/bloodBanksScreen': (context) => BloodBanksScreen(),
+        // '/donationHistoryScreen': (context) => DonationHistoryScreen(),
+      },
+    );
+  }
+}

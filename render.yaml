@@ -1,0 +1,48 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# Deploys the EsperFlow FastAPI backend. Render reads this file from the repo
+# root; `rootDir` points it at the backend/ subdirectory.
+#
+# Secrets are NOT in this file. After the first deploy, set them in the Render
+# dashboard (Environment tab) — see backend/README.md §5.
+
+services:
+  - type: web
+    name: esperflow-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    region: singapore # closest to Pakistan; also: oregon, frankfurt, ohio, virginia
+    branch: main
+
+    buildCommand: pip install -r requirements.txt
+    # $PORT is injected by Render and must be honoured, or the deploy fails
+    # health checks and is killed.
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+
+    healthCheckPath: /health
+
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+
+      # --- Set these in the dashboard, never here ---
+      # FIREBASE_SERVICE_ACCOUNT_JSON: base64 of serviceAccountKey.json
+      #   (or upload the file as a Secret File and set
+      #    FIREBASE_SERVICE_ACCOUNT_PATH=/etc/secrets/serviceAccountKey.json)
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
+      # Shared secret the Flutter app sends as the x-api-key header.
+      - key: API_KEY
+        generateValue: true
+
+      - key: FIREBASE_PROJECT_ID
+        value: esperflow-1b828
+      - key: DONORS_COLLECTION
+        value: donors
+      - key: BLOOD_REQUESTS_COLLECTION
+        value: bloodRequests
+      - key: NOTIFY_ONLY_ACTIVE_DONORS
+        value: false
+      - key: CORS_ORIGINS
+        value: "*"
