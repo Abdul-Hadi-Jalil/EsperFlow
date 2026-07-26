@@ -26,10 +26,14 @@ services:
       - key: PYTHON_VERSION
         value: 3.12.8
 
-      # --- Set these in the dashboard, never here ---
-      # FIREBASE_SERVICE_ACCOUNT_JSON: base64 of serviceAccountKey.json
-      #   (or upload the file as a Secret File and set
-      #    FIREBASE_SERVICE_ACCOUNT_PATH=/etc/secrets/serviceAccountKey.json)
+      # --- Credentials: never put the key itself in this file ---
+      # Upload serviceAccountKey.json under Environment > Secret Files.
+      # Render mounts secret files at /etc/secrets/<filename>.
+      - key: FIREBASE_SERVICE_ACCOUNT_PATH
+        value: /etc/secrets/serviceAccountKey.json
+      # Alternative to the secret file above: base64 of the same JSON, entered
+      # in the dashboard. Leave blank when using the secret file - a non-empty
+      # value here takes precedence over the path.
       - key: FIREBASE_SERVICE_ACCOUNT_JSON
         sync: false
       # Shared secret the Flutter app sends as the x-api-key header.
