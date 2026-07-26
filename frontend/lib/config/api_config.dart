@@ -1,21 +1,27 @@
 /// Where the EsperFlow backend lives, and how we authenticate with it.
 ///
-/// Override at build time so no URL is hard-coded into a release build:
+/// The default is the deployed backend, so a plain `flutter build` produces a
+/// working app. Point it somewhere else at build time for local development:
 ///
 /// ```
-/// flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000 \
-///             --dart-define=API_KEY=your-secret
+/// # backend on this machine, phone attached over USB
+/// adb reverse tcp:8000 tcp:8000
+/// flutter run --dart-define=API_BASE_URL=http://localhost:8000
+///
+/// # Android emulator (10.0.2.2 is the host's localhost)
+/// flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
+///
+/// # phone on the same Wi-Fi (uvicorn must bind --host 0.0.0.0)
+/// flutter run --dart-define=API_BASE_URL=http://192.168.18.251:8000
 /// ```
 ///
-/// The default targets the Android emulator, where `10.0.2.2` is the host
-/// machine's `localhost`. On a physical phone use your PC's LAN IP
-/// (`ipconfig`), and make sure the backend runs with `--host 0.0.0.0`.
+/// `API_KEY` must accompany it whenever the target backend sets one.
 class ApiConfig {
   const ApiConfig._();
 
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://192.168.18.251:8000',
+    defaultValue: 'https://esperflow-backend.onrender.com',
   );
 
   /// Must match `API_KEY` in the backend's `.env` when that is set.
