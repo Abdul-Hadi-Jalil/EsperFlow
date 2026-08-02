@@ -77,6 +77,29 @@ def _is_dead_token(exception: Exception | None) -> bool:
     return isinstance(code, str) and code.upper() in _DEAD_TOKEN_CODES
 
 
+def is_token_deliverable(token: str) -> tuple[bool, str]:
+    """Ask FCM whether a token is still live, delivering nothing.
+
+    `dry_run` validates the registration server-side, which is the only way to
+    tell a working token from a "zombie" - one the device still holds and
+    happily reports, but that FCM retired when the app was reinstalled. Without
+    this a donor can register with a dead token and never learn they are
+    unreachable.
+    """
+    messaging = get_messaging()
+    message = messaging.Message(
+        token=token,
+        notification=messaging.Notification(title="EsperFlow", body="token check"),
+    )
+    try:
+        messaging.send(message, dry_run=True)
+        return True, "ok"
+    except firebase_exceptions.FirebaseError as exc:
+        reason = getattr(exc, "code", None) or type(exc).__name__
+        logger.info("Token %s… rejected by FCM: %s", token[:12], reason)
+        return False, str(reason)
+
+
 def broadcast_blood_request(
     request_id: str,
     request: dict,

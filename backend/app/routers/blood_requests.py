@@ -13,9 +13,17 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.blood_groups import normalize
 from app.dependencies import verify_api_key
-from app.schemas import BloodRequestCreate, BloodRequestOut, BroadcastResult, DonorReachOut
+from app.schemas import (
+    BloodRequestCreate,
+    BloodRequestOut,
+    BroadcastResult,
+    DonorReachOut,
+    TokenStatusIn,
+    TokenStatusOut,
+)
 from app.services import blood_requests as service
 from app.services import donors as donor_service
+from app.services import fcm as fcm_service
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +127,25 @@ def close_blood_request(
         return service.close_request(request_id, new_status)
     except service.RequestNotFoundError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Blood request not found.") from exc
+
+
+@router.post(
+    "/donors/verify-token",
+    response_model=TokenStatusOut,
+    summary="Check whether a device's push token is still live",
+)
+def verify_donor_token(
+    payload: TokenStatusIn,
+    _: None = Depends(verify_api_key),
+) -> TokenStatusOut:
+    """Lets the app detect a token FCM has retired before storing it, so a
+    donor never registers as unreachable. Delivers no notification."""
+    try:
+        valid, reason = fcm_service.is_token_deliverable(payload.token)
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Token verification failed")
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc
+    return TokenStatusOut(valid=valid, reason=reason)
 
 
 @router.get(

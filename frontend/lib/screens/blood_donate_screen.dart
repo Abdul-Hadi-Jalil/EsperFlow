@@ -1,9 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:esperflow/services/donor_service.dart';
+import 'package:esperflow/widgets/donor_registered_dialog.dart';
 import 'package:esperflow/widgets/my_custom_buttom.dart';
 import 'package:esperflow/widgets/my_text_field.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 
 class BloodDonateScreen extends StatefulWidget {
   const BloodDonateScreen({super.key});
@@ -19,11 +18,6 @@ class _BloodDonateScreenState extends State<BloodDonateScreen> {
   final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _availabilityController = TextEditingController();
 
-  String? fullName = "";
-  String? location = "";
-  String? phoneNumber = "";
-  String? availability = "";
-
   String? selectedBloodGroup;
   List<String> bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
@@ -32,10 +26,66 @@ class _BloodDonateScreenState extends State<BloodDonateScreen> {
 
   bool _isSubmitting = false;
 
+  /// Register this device as a donor: capture an FCM token and store the
+  /// profile. Re-submitting updates the existing registration rather than
+  /// creating a duplicate.
   Future<void> saveBloodDonateData() async {
-    setState(() {
-      _isSubmitting = true;
-    });
+    if (_isSubmitting) return;
+
+    final validationError = _validate();
+    if (validationError != null) {
+      _showSnackBar(validationError);
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final registration = await DonorService.register(
+        fullName: _fullNameController.text.trim(),
+        bloodGroup: selectedBloodGroup!,
+        location: _locationController.text.trim(),
+        phoneNumber: _phoneNumberController.text.trim(),
+        availability: _availabilityController.text.trim(),
+        allowCalls: allowCalls,
+        activeDonorStatus: activeDonorStatus,
+      );
+      if (!mounted) return;
+
+      await showDialog(
+        context: context,
+        builder: (_) => DonorRegisteredDialog(
+          registration: registration,
+          bloodGroup: selectedBloodGroup!,
+        ),
+      );
+    } on DonorRegistrationException catch (e) {
+      if (!mounted) return;
+      _showSnackBar(e.message);
+    } catch (e) {
+      if (!mounted) return;
+      _showSnackBar('Something went wrong. Please try again.');
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  String? _validate() {
+    if (_fullNameController.text.trim().length < 2) {
+      return 'Please enter your full name.';
+    }
+    if (selectedBloodGroup == null) {
+      return 'Please select your blood group.';
+    }
+    final phone = _phoneNumberController.text.trim();
+    if (phone.isNotEmpty && phone.replaceAll(RegExp(r'[^0-9]'), '').length < 7) {
+      return 'Please enter a valid phone number, or leave it empty.';
+    }
+    return null;
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -43,6 +93,7 @@ class _BloodDonateScreenState extends State<BloodDonateScreen> {
     _fullNameController.dispose();
     _locationController.dispose();
     _phoneNumberController.dispose();
+    _availabilityController.dispose();
     super.dispose();
   }
 
@@ -233,49 +284,10 @@ class _BloodDonateScreenState extends State<BloodDonateScreen> {
 
               // submit button
               MyCustomButtom(
-                onTap: () async {
-                  fullName = _fullNameController.text.trim();
-                  location = _locationController.text.trim();
-                  phoneNumber = _phoneNumberController.text.trim();
-                  availability = _availabilityController.text.trim();
-
-                  // get the device id
-                  String? deviceId;
-                  deviceId = Uuid().v4(); // Generate unique ID
-
-                  // create fcm token and save data to firebase
-                  // Get FCM token
-                  final FirebaseMessaging messaging =
-                      FirebaseMessaging.instance;
-
-                  NotificationSettings settings = await messaging
-                      .requestPermission(alert: true, badge: true, sound: true);
-
-                  String? fcmToken;
-                  if (settings.authorizationStatus ==
-                      AuthorizationStatus.authorized) {
-                    fcmToken = await messaging.getToken();
-                  }
-
-                  // Save to Firebase with the token
-                  await FirebaseFirestore.instance
-                      .collection('donors')
-                      .doc(deviceId)
-                      .set({
-                        'fullName': fullName,
-                        'location': location,
-                        'phoneNumber': phoneNumber,
-                        'availability': availability,
-                        'bloodGroup': selectedBloodGroup,
-                        'allowCalls': allowCalls,
-                        'activeDonorStatus': activeDonorStatus,
-                        'fcmToken': fcmToken,
-                        'registeredAt': FieldValue.serverTimestamp(),
-                      });
-
-                  // todo: Show success alert dialog
-                },
-                backgroundColor: const Color(0xFFE31A1A),
+                onTap: _isSubmitting ? null : saveBloodDonateData,
+                backgroundColor: _isSubmitting
+                    ? Colors.grey
+                    : const Color(0xFFE31A1A),
                 text: _isSubmitting ? "Submitting..." : "Submit Donation",
                 textColor: Colors.white,
               ),

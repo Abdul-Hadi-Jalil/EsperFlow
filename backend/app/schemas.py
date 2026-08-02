@@ -121,5 +121,17 @@ class DonorReachOut(CamelModel):
     blood_group: str | None = None
 
 
+class TokenStatusIn(CamelModel):
+    token: Annotated[str, Field(min_length=10, max_length=4096)]
+
+
+class TokenStatusOut(CamelModel):
+    """Whether FCM still recognises a device's registration."""
+
+    valid: bool
+    # FCM's error code when invalid, e.g. NOT_FOUND for a retired token.
+    reason: str = "ok"
+
+
 class ErrorOut(BaseModel):
     detail: str

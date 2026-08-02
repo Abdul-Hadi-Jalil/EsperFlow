@@ -118,6 +118,14 @@ class BloodRequestService {
   }
 
   static String _serverError(http.Response response) {
+    // A rejected key is a build/config mistake, not something the person
+    // holding the phone can act on - keep the detail in the log, not the UI.
+    if (response.statusCode == 401 || response.statusCode == 403) {
+      debugPrint('Backend rejected the API key: ${response.body}');
+      return 'This app could not authenticate with the notification server, '
+          'so donors were not alerted. Your request was saved.';
+    }
+
     try {
       final decoded = jsonDecode(response.body);
       if (decoded is Map && decoded['detail'] != null) {

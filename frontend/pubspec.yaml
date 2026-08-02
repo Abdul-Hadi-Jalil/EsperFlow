@@ -43,6 +43,9 @@ dependencies:
   firebase_messaging: ^16.2.1
   uuid: ^4.5.3
   http: ^1.2.2
+  # Remembers this device's donor document id so a rotated FCM token can be
+  # re-attached to the existing registration instead of orphaning it.
+  shared_preferences: ^2.3.3
 
 
 
@@ -56,6 +59,24 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+
+  # Generates the launcher icons for every density from assets/images/icon.png.
+  # Re-run after changing that file:  dart run flutter_launcher_icons
+  flutter_launcher_icons: ^0.14.4
+
+# Launcher icon generation. `android: true` overwrites the default
+# ic_launcher_* mipmaps, so AndroidManifest.xml needs no change.
+flutter_launcher_icons:
+  image_path: "assets/images/icon.png"
+  android: true
+  ios: true
+  # Android 8+ draws the icon as a masked foreground over a background layer.
+  # The logo already sits well inside the frame, so it survives the circular
+  # and squircle masks OEMs apply.
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/icon.png"
+  # App Store rejects icons with an alpha channel; icon.png has one.
+  remove_alpha_ios: true
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -3,6 +3,7 @@ import 'package:esperflow/firebase_options.dart';
 import 'package:esperflow/screens/blood_donate_screen.dart';
 import 'package:esperflow/screens/blood_request_screen.dart';
 import 'package:esperflow/screens/home_screen.dart';
+import 'package:esperflow/services/donor_service.dart';
 import 'package:esperflow/services/notification_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,10 @@ void main() async {
   // Listens for blood requests broadcast by the backend and keeps this
   // device's FCM token current.
   await NotificationService.initialize();
+
+  // Tokens rotate, and the backend drops any token FCM rejects. Re-attach the
+  // current one so an existing donor registration stays reachable.
+  await DonorService.syncToken();
 
   runApp(const EsperFlow());
 }

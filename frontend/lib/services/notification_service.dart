@@ -105,6 +105,28 @@ class NotificationService {
     }
   }
 
+  /// Throws away this device's FCM registration and mints a new one.
+  ///
+  /// Needed when the token the device holds is one FCM has already retired
+  /// ("NotRegistered"). That happens after an uninstall/reinstall — Android
+  /// Auto Backup restores the old token into the app's preferences, so the
+  /// device keeps offering a registration the server deleted. Re-registering
+  /// cannot fix it; only deleting the token forces a fresh one.
+  static Future<String?> rotateToken() async {
+    try {
+      await _messaging.deleteToken();
+      _cachedToken = await _messaging.getToken();
+      debugPrint('Rotated the FCM token: ${_preview(_cachedToken)}');
+      return _cachedToken;
+    } catch (e) {
+      debugPrint('Could not rotate the FCM token: $e');
+      return null;
+    }
+  }
+
+  static String _preview(String? token) =>
+      token == null ? '<none>' : '${token.substring(0, 12)}…(${token.length})';
+
   static bool _isBloodRequest(RemoteMessage message) =>
       message.data['type'] == 'blood_request';
 
