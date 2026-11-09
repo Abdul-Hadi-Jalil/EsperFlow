@@ -4,6 +4,14 @@ A Flutter blood donation coordination application with Firebase accounts, donor 
 
 The project demonstrates a mobile-to-cloud workflow in which the app manages user-facing records while a trusted backend holds Firebase Admin credentials and sends push notifications.
 
+## Mobile interface preview
+
+The mobile sign-in experience introduces EsperFlow’s blood-donation mission before users access donor registration, requests, and donation history.
+
+<p align="center">
+  <img src="docs/images/esperflow-mobile-login.png" alt="EsperFlow mobile sign-in interface" width="360">
+</p>
+
 ## Stack and architecture
 
 Flutter / Dart `^3.10.0`, Firebase Authentication, Cloud Firestore, Firebase Cloud Messaging, and `http` form the client. FastAPI, Uvicorn, and the Firebase Admin SDK form the backend.
