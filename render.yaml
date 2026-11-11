@@ -14,6 +14,10 @@ services:
     rootDir: backend
     region: singapore # closest to Pakistan; also: oregon, frankfurt, ohio, virginia
     branch: main
+    # Deploy every push to `main`. If pushes are not triggering builds, the
+    # dashboard setting wins over this file until the blueprint is re-synced —
+    # check Settings > Build & Deploy > Auto-Deploy.
+    autoDeploy: true
 
     buildCommand: pip install -r requirements.txt
     # $PORT is injected by Render and must be honoured, or the deploy fails
