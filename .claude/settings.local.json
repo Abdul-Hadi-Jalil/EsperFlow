@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Write-Output \"=== BACKEND ===\"; Get-ChildItem -Recurse backend | Where-Object { -not $_.PSIsContainer } | ForEach-Object { $_.FullName.Replace\\(\\(Get-Location\\).Path + '\\\\',''\\) } | Sort-Object; Write-Output \"\"; Write-Output \"=== FRONTEND/lib \\(all dart\\) ===\"; Get-ChildItem -Recurse frontend\\\\lib | Where-Object { -not $_.PSIsContainer } | ForEach-Object { $_.FullName.Replace\\(\\(Get-Location\\).Path + '\\\\',''\\) } | Sort-Object)",
+      "PowerShell(Write-Output \"=== FRONTEND root files ===\"; Get-ChildItem frontend -File | Select-Object Name, Length | Format-Table -AutoSize; Write-Output \"=== assets ===\"; Get-ChildItem -Recurse frontend\\\\assets | Where-Object { -not $_.PSIsContainer } | ForEach-Object { $_.FullName.Replace\\(\\(Get-Location\\).Path + '\\\\',''\\) }; Write-Output \"=== test ===\"; Get-ChildItem -Recurse frontend\\\\test -ErrorAction SilentlyContinue | Where-Object { -not $_.PSIsContainer } | ForEach-Object { $_.FullName.Replace\\(\\(Get-Location\\).Path + '\\\\',''\\) })"
+    ]
+  }
+}
